@@ -5,7 +5,9 @@ VisualStudioVersion = 16.0.30611.23
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WpfClient", "WpfClient\WpfClient.csproj", "{4D3A90DA-0E6E-4F38-8B12-E3EF3BC67EB3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SlidingLogic", "SlidingLogic\SlidingLogic.csproj", "{FACABACB-D452-4009-BA25-EAD2AA9B97AE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SlidingLogic", "SlidingLogic\SlidingLogic.csproj", "{FACABACB-D452-4009-BA25-EAD2AA9B97AE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SlidingLogic.Tests", "SlidingLogic.Tests\SlidingLogic.Tests.csproj", "{3FDD45C2-0393-4319-BBD1-16F44B1600DB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{FACABACB-D452-4009-BA25-EAD2AA9B97AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FACABACB-D452-4009-BA25-EAD2AA9B97AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FACABACB-D452-4009-BA25-EAD2AA9B97AE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3FDD45C2-0393-4319-BBD1-16F44B1600DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3FDD45C2-0393-4319-BBD1-16F44B1600DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3FDD45C2-0393-4319-BBD1-16F44B1600DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3FDD45C2-0393-4319-BBD1-16F44B1600DB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
