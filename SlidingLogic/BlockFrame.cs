@@ -6,16 +6,12 @@ namespace SlidingLogic
    public class BlockFrame
    {
       public int NbCells { get; set; }
-      private int xDim;
-      private int yDim;
       private List<Block> cells;
       private Block emptyCellBlock = new Block(-1);
 
       public BlockFrame(int xDim, int yDim)
       {
          ValidateFrameDimensions(xDim, yDim);
-         this.xDim = xDim;
-         this.yDim = yDim;
          cells = new List<Block>();
          InitializeFrame(xDim, yDim);
          NbCells = cells.Count;
@@ -41,22 +37,22 @@ namespace SlidingLogic
          }
       }
 
-      public int GetBlockId(int i)
+      public int GetBlockId(int index)
       {
-         return cells[i].Id;
+         return cells[index].Id;
       }
 
-      public void RemoveLastBlock()
+      public void RemoveBlock(int index)
       {
-         cells[NbCells - 1] = emptyCellBlock;
+         cells[index] = emptyCellBlock;
       }
 
-      public void SwapBlocks(int fromIndex, int toIndex)
+      public void SwapBlocks(int index1, int index2)
       {
-         Block tempBlock = cells[toIndex];
+         Block tempBlock = cells[index2];
 
-         cells[toIndex] = cells[fromIndex];
-         cells[fromIndex] = tempBlock;
+         cells[index2] = cells[index1];
+         cells[index1] = tempBlock;
       }
    }
 }

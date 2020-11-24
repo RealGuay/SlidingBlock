@@ -32,12 +32,6 @@ namespace SlidingLogic.Tests
       }
 
       [Test]
-      public void ShouldCreateOneBlockPerCell()
-      {
-
-      }
-
-      [Test]
       public void ShouldCreateBlocksInOrder()
       {
          int[] frameCellIndexes, foundBlockIds;
@@ -57,22 +51,16 @@ namespace SlidingLogic.Tests
          }
       }
 
-      // valid test ?? : the exception is thrown but not by my code !!!
       [Test]
-      public void ShouldThrowArgumentExceptionIfCellIndexIsTooLarge()
+      public void ShouldRemoveBlockFromFrame()
       {
-         Assert.Throws<ArgumentOutOfRangeException>(() => frame.GetBlockId(20));
-      }
-
-      [Test]
-      public void ShouldRemoveLastBlockFromFrame()
-      {
-         frame.RemoveLastBlock();
+         int removeIndex = 19;
+         frame.RemoveBlock(removeIndex);
 
          int[] frameCellIndexes, foundBlockIds;
          ExtractAllBlockIds(out frameCellIndexes, out foundBlockIds);
 
-         frameCellIndexes[frame.NbCells - 1] = -1; // empty cell indicator
+         frameCellIndexes[removeIndex] = -1; // empty cell indicator
 
          Assert.AreEqual(frameCellIndexes, foundBlockIds);
       }
