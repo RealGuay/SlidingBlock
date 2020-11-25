@@ -37,7 +37,6 @@ namespace SlidingLogic.Tests
          Assert.AreEqual(-1, game.GetBlockId(18));
       }
 
-
       [Test]
       public void ShouldThrowArgumentExceptionIfMoveBlockOnNonMoveableBlock()
       {
@@ -49,7 +48,6 @@ namespace SlidingLogic.Tests
       {
          Assert.Throws<ArgumentException>(() => game.MoveBlock(19));
       }
-
 
       [Test]
       public void ShouldProvideIndexesOfMoveableBlocksOnBottomRightCorner()
@@ -64,7 +62,7 @@ namespace SlidingLogic.Tests
       [Test]
       public void ShouldProvideIndexesOfMoveableBlocksOnBottomLeftCorner()
       {
-         // free top left corner
+         // free bottom left corner cell
          game.MoveBlock(18);
          game.MoveBlock(17);
          game.MoveBlock(16);
@@ -77,7 +75,7 @@ namespace SlidingLogic.Tests
       [Test]
       public void ShouldProvideIndexesOfMoveableBlocksOnTopLeftCorner()
       {
-         // free top left corner
+         // free top left corner cell
          game.MoveBlock(18);
          game.MoveBlock(17);
          game.MoveBlock(16);
@@ -94,7 +92,7 @@ namespace SlidingLogic.Tests
       [Test]
       public void ShouldProvideIndexesOfMoveableBlocksOnTopRightCorner()
       {
-         // free top left corner
+         // free top right corner cell
          game.MoveBlock(15);
          game.MoveBlock(11);
          game.MoveBlock(7);
@@ -108,7 +106,7 @@ namespace SlidingLogic.Tests
       [Test]
       public void ShouldProvideIndexesOfMoveableBlocksOnTopRow()
       {
-         // free top left corner
+         // free a top row cell
          game.MoveBlock(15);
          game.MoveBlock(14);
          game.MoveBlock(10);
@@ -124,7 +122,7 @@ namespace SlidingLogic.Tests
       [Test]
       public void ShouldProvideIndexesOfMoveableBlocksOnBottomRow()
       {
-         // free top left corner
+         // free a bottom row cell
          game.MoveBlock(18);
          game.MoveBlock(17);
          List<int> foundIndexes = game.MoveableBlockIndexes;
@@ -136,7 +134,7 @@ namespace SlidingLogic.Tests
       [Test]
       public void ShouldProvideIndexesOfMoveableBlocksOnLeftColumn()
       {
-         // free top left corner
+         // free a left column cell
          game.MoveBlock(18);
          game.MoveBlock(17);
          game.MoveBlock(13);
@@ -151,7 +149,7 @@ namespace SlidingLogic.Tests
       [Test]
       public void ShouldProvideIndexesOfMoveableBlocksOnRightColumn()
       {
-         // free top left corner
+         // free a right column cell
          game.MoveBlock(15);
          game.MoveBlock(11);
          List<int> foundIndexes = game.MoveableBlockIndexes;
@@ -163,7 +161,7 @@ namespace SlidingLogic.Tests
       [Test]
       public void ShouldProvideIndexesOfMoveableBlocksOnSurrondedCell()
       {
-         // free top left corner
+         // free a surrounded cell
          game.MoveBlock(15);
          game.MoveBlock(14);
          game.MoveBlock(10);
@@ -188,11 +186,10 @@ namespace SlidingLogic.Tests
          Assert.AreEqual(19, toIndex);
       }
 
-
       [Test]
       public void ShouldProvideBlockIdForEachCellInInitialState()
       {
-         List<int> expectedIds = new List<int>() {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, -1 };
+         List<int> expectedIds = new List<int>() { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, -1 };
          List<int> foundIds = new List<int>();
 
          for (int i = 0; i < game.NbCells; i++)
@@ -223,7 +220,7 @@ namespace SlidingLogic.Tests
       }
 
       [Test]
-      public  void ShouldNotBeShuffledInitialy()
+      public void ShouldNotBeShuffledInitialy()
       {
          bool isShuffled = game.IsShuffled();
          Assert.AreEqual(false, isShuffled);  // this is NOT true because it random  !!! (???)
@@ -240,9 +237,8 @@ namespace SlidingLogic.Tests
          game.MoveBlock(19);
 
          bool isShuffled = game.IsShuffled();
-         Assert.AreEqual(false, isShuffled);  
+         Assert.AreEqual(false, isShuffled);
       }
-
 
       [Test]
       public void ShouldBeShuffledAfterOneMove()
@@ -250,9 +246,8 @@ namespace SlidingLogic.Tests
          game.MoveBlock(15);
 
          bool isShuffled = game.IsShuffled();
-         Assert.AreEqual(true, isShuffled);  
+         Assert.AreEqual(true, isShuffled);
       }
-
 
       [Test]
       public void ShouldShuffleBlocks()
@@ -269,6 +264,5 @@ namespace SlidingLogic.Tests
 
          Assert.AreNotEqual(expectedIds, foundIds);
       }
-
    }
 }

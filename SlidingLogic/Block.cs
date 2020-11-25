@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace SlidingLogic
+﻿namespace SlidingLogic
 {
    public class Block
    {
-      public int Id { get; set; }
+      public int Id { get; }
 
       public Block(int id)
       {

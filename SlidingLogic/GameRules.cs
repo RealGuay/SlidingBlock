@@ -8,13 +8,8 @@ namespace SlidingLogic
    {
       private readonly int xDim;
       private readonly int yDim;
-      private BlockFrame frame;
       private int emptyBlockIndex;
-
-      public List<int> MoveableBlockIndexes { get; }
-      public int NbCells { get; set; }
-
-      public event Action<int, int> BlockMoved;
+      private BlockFrame frame;
 
       public GameRules(int xDim, int yDim)
       {
@@ -24,20 +19,75 @@ namespace SlidingLogic
          InitializeFrame();
       }
 
-      private void InitializeFrame()
+      public event Action<int, int> BlockMoved;
+
+      public List<int> MoveableBlockIndexes { get; }
+      public int NbCells { get; set; }
+
+      public int GetBlockId(int index)
       {
-         frame = new BlockFrame(xDim, yDim);
-         NbCells = frame.NbCells;
-         RemoveLastBlock();
-         FindMoveableBlockIndexes();
+         return frame.GetBlockId(index);
       }
 
-      private void RemoveLastBlock()
+      public bool IsShuffled()
       {
-         int lastIndex = NbCells - 1;
-         frame.RemoveBlock(lastIndex);
-         emptyBlockIndex = lastIndex;
+         for (int i = 0; i < NbCells; i++)
+         {
+            if (i < NbCells - 1)
+            {
+               if (GetBlockId(i) != i)
+               {
+                  return true;
+               }
+            }
+            else // last cell
+            {
+               if (GetBlockId(i) != -1)
+               {
+                  return true;
+               }
+            }
+         }
+         return false;
       }
+
+      public void MoveBlock(int fromIndex)
+      {
+         ValidateMoveableBlock(fromIndex);
+
+         int toIndex = emptyBlockIndex;
+         frame.SwapBlocks(fromIndex, toIndex);
+         emptyBlockIndex = fromIndex;
+         FindMoveableBlockIndexes();
+         BlockMoved?.Invoke(fromIndex, toIndex);
+      }
+
+      public void ShuffleBlocks()
+      {
+         DoShuffleRandomly();
+
+         if (!IsShuffled())
+         {
+            ShuffleBlocks();  // recursive !! dangerous ???
+         }
+      }
+
+      private void DoShuffleRandomly()
+      {
+         Random rand = new Random();
+
+         int nbMoves = rand.Next(10, 100);
+
+         for (int i = 0; i < nbMoves; i++)
+         {
+            int num = rand.Next(10000);
+            int selectMoveableIndex = num % MoveableBlockIndexes.Count;
+
+            MoveBlock(MoveableBlockIndexes[selectMoveableIndex]);
+            Thread.Sleep(10);
+         }
+      }
+
       private void FindMoveableBlockIndexes()
       {
          MoveableBlockIndexes.Clear();
@@ -73,20 +123,19 @@ namespace SlidingLogic
          MoveableBlockIndexes.Sort();
       }
 
-      public int GetBlockId(int index)
+      private void InitializeFrame()
       {
-         return frame.GetBlockId(index);
+         frame = new BlockFrame(xDim, yDim);
+         NbCells = frame.NbCells;
+         RemoveLastBlock();
+         FindMoveableBlockIndexes();
       }
 
-      public void MoveBlock(int fromIndex)
+      private void RemoveLastBlock()
       {
-         ValidateMoveableBlock(fromIndex);
-
-         int toIndex = emptyBlockIndex;
-         frame.SwapBlocks(fromIndex, toIndex);
-         emptyBlockIndex = fromIndex;
-         FindMoveableBlockIndexes();
-         BlockMoved?.Invoke(fromIndex, toIndex);
+         int lastIndex = NbCells - 1;
+         frame.RemoveBlock(lastIndex);
+         emptyBlockIndex = lastIndex;
       }
 
       private void ValidateMoveableBlock(int fromIndex)
@@ -96,54 +145,5 @@ namespace SlidingLogic
             throw new ArgumentException($"Cannot move block in cell index: {fromIndex}");
          }
       }
-
-      public void ShuffleBlocks()
-      {
-         DoShuffleRandomly();
-
-         if (!IsShuffled())
-         {
-            ShuffleBlocks();  // recursive !! dangerous ???
-         }
-      }
-
-      private void DoShuffleRandomly()
-      {
-         Random rand = new Random();
-
-         int nbMoves = rand.Next(10, 100);
-
-         for (int i = 0; i < nbMoves; i++)
-         {
-            int num = rand.Next(10000);
-            int selectMoveableIndex = num % MoveableBlockIndexes.Count;
-
-            MoveBlock(MoveableBlockIndexes[selectMoveableIndex]);
-            Thread.Sleep(10);
-         }
-      }
-
-      public bool IsShuffled()
-      {
-         for (int i = 0; i < NbCells; i++)
-         {
-            if(i < NbCells -1)
-            {
-               if (GetBlockId(i) != i)
-               {
-                  return true;
-               }
-            }
-            else // last cell
-            {
-               if (GetBlockId(i) != -1)
-               {
-                  return true;
-               }
-            }
-         }
-         return false;
-      }
-
    }
 }

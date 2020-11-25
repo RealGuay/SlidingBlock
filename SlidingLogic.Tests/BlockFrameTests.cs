@@ -14,9 +14,39 @@ namespace SlidingLogic.Tests
       }
 
       [Test]
+      public void ShouldCreateBlocksInOrder()
+      {
+         ExtractAllBlockIds(out int[] frameCellIndexes, out int[] foundBlockIds);
+
+         Assert.AreEqual(frameCellIndexes, foundBlockIds);
+      }
+
+      [Test]
       public void ShouldCreateFrameWithNbyMCells()
       {
          Assert.AreEqual(20, frame.NbCells);
+      }
+
+      [Test]
+      public void ShouldRemoveBlockFromFrame()
+      {
+         int removeIndex = 19;
+         frame.RemoveBlock(removeIndex);
+         ExtractAllBlockIds(out int[] frameCellIndexes, out int[] foundBlockIds);
+         frameCellIndexes[removeIndex] = -1; // empty indicator in last cell
+
+         Assert.AreEqual(frameCellIndexes, foundBlockIds);
+      }
+
+      [Test]
+      public void ShouldSwapBlocks()
+      {
+         frame.SwapBlocks(2, 5);
+         ExtractAllBlockIds(out int[] frameCellIndexes, out int[] foundBlockIds);
+         frameCellIndexes[2] = 5;
+         frameCellIndexes[5] = 2;
+
+         Assert.AreEqual(frameCellIndexes, foundBlockIds);
       }
 
       [Test]
@@ -30,16 +60,6 @@ namespace SlidingLogic.Tests
       {
          Assert.Throws<ArgumentException>(() => new BlockFrame(4, 1), "yDim must be 2 or greater");
       }
-
-      [Test]
-      public void ShouldCreateBlocksInOrder()
-      {
-         int[] frameCellIndexes, foundBlockIds;
-         ExtractAllBlockIds(out frameCellIndexes, out foundBlockIds);
-
-         Assert.AreEqual(frameCellIndexes, foundBlockIds);
-      }
-
       private void ExtractAllBlockIds(out int[] frameCellIndexes, out int[] foundBlockIds)
       {
          frameCellIndexes = new int[frame.NbCells];
@@ -49,34 +69,6 @@ namespace SlidingLogic.Tests
             frameCellIndexes[i] = i;
             foundBlockIds[i] = frame.GetBlockId(i);
          }
-      }
-
-      [Test]
-      public void ShouldRemoveBlockFromFrame()
-      {
-         int removeIndex = 19;
-         frame.RemoveBlock(removeIndex);
-
-         int[] frameCellIndexes, foundBlockIds;
-         ExtractAllBlockIds(out frameCellIndexes, out foundBlockIds);
-
-         frameCellIndexes[removeIndex] = -1; // empty cell indicator
-
-         Assert.AreEqual(frameCellIndexes, foundBlockIds);
-      }
-
-      [Test]
-      public void ShouldSwapBlocks()
-      {
-         frame.SwapBlocks(2, 5);
-
-         int[] frameCellIndexes, foundBlockIds;
-         ExtractAllBlockIds(out frameCellIndexes, out foundBlockIds);
-
-         frameCellIndexes[2] = 5;
-         frameCellIndexes[5] = 2;
-
-         Assert.AreEqual(frameCellIndexes, foundBlockIds);
       }
    }
 }
