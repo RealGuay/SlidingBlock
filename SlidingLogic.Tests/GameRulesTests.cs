@@ -178,7 +178,7 @@ namespace SlidingLogic.Tests
          int toIndex = -1;
 
          var wait = new AutoResetEvent(false);
-         game.BlockMoved += (from, to) => { wait.Set(); fromIndex = from; toIndex = to; };
+         game.BlockMoved += (s, e) => { wait.Set(); fromIndex = e.FromIndex; toIndex = e.ToIndex; };
          game.MoveBlock(18);
 
          Assert.IsTrue(wait.WaitOne(TimeSpan.FromSeconds(5)));
