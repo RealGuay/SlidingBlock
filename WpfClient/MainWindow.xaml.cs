@@ -23,6 +23,19 @@ namespace WpfClient
       public MainWindow()
       {
          InitializeComponent();
+         this.Loaded += MainWindow_Loaded;
+      }
+
+      private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+      {
+         MainViewModel model = (MainViewModel) DataContext;
+      }
+
+      private void Button_Click(object sender, RoutedEventArgs e)
+      {
+         MainViewModel model = (MainViewModel)DataContext;
+         //         model.ShuffleSections();
+         model.MoveSection();
       }
    }
 }

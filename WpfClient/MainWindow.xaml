@@ -3,9 +3,30 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WpfClient"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Grid>
+   <Window.DataContext>
+      <local:MainViewModel></local:MainViewModel>
+   </Window.DataContext>
+   <Grid>
 
-    </Grid>
+      <ItemsControl ItemsSource="{Binding PictureSections}">
+         <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+               <UniformGrid Columns="{Binding XDimension}"/>
+            </ItemsPanelTemplate>
+         </ItemsControl.ItemsPanel>
+         <ItemsControl.ItemTemplate>
+            <DataTemplate>
+               <StackPanel Orientation="Vertical">
+                  <Button Content ="{Binding ImageMember}" Click="Button_Click"/>
+                  <TextBlock Text="{Binding Id}" HorizontalAlignment="Center"/>
+               </StackPanel>
+            </DataTemplate>
+         </ItemsControl.ItemTemplate>
+         
+         
+      </ItemsControl>
+   </Grid>
 </Window>
