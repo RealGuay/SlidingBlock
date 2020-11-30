@@ -20,7 +20,7 @@
          <ItemsControl.ItemTemplate>
             <DataTemplate>
                <StackPanel Orientation="Vertical">
-                  <Button Content ="{Binding ImageMember}" Click="Button_Click"/>
+                  <Button Content ="{Binding ImageMember}" Command="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}, Path=DataContext.MoveSectionCommand}" CommandParameter="{Binding Id}"/>
                   <TextBlock Text="{Binding Id}" HorizontalAlignment="Center"/>
                </StackPanel>
             </DataTemplate>

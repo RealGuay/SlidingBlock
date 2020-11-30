@@ -31,11 +31,5 @@ namespace WpfClient
          MainViewModel model = (MainViewModel) DataContext;
       }
 
-      private void Button_Click(object sender, RoutedEventArgs e)
-      {
-         MainViewModel model = (MainViewModel)DataContext;
-         //         model.ShuffleSections();
-         model.MoveSection();
-      }
    }
 }

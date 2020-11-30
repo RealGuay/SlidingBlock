@@ -7,6 +7,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Images\Cloe1.jpg" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Prism.Core" Version="8.0.0.1909" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Images\Cloe1.jpg" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\SlidingLogic\SlidingLogic.csproj" />
   </ItemGroup>
 

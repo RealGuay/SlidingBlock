@@ -1,7 +1,7 @@
-﻿using SlidingLogic;
+﻿using Prism.Commands;
+using SlidingLogic;
 using System;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
@@ -15,6 +15,9 @@ namespace WpfClient
       private PictureSection removedPictureSection;
       private GameRules game;
 
+      public DelegateCommand<object> MoveSectionCommand { get; set; }
+
+
       public MainViewModel()
       {
          XDimension = 3;
@@ -22,8 +25,19 @@ namespace WpfClient
          InitializeSections(XDimension, YDimension);
          RemoveLastSection();
 
+         MoveSectionCommand = new DelegateCommand<object>(MoveSectionExecute, CanMoveSection);
          game = new GameRules(XDimension, YDimension);
          game.BlockMoved += Game_BlockMoved;
+      }
+
+      private bool CanMoveSection(object arg)
+      {
+         return game.MoveableBlockIndexes.Contains((int)arg);
+      }
+
+      private void MoveSectionExecute(object obj)
+      {
+         MoveSection((int)obj);
       }
 
       public ObservableCollection<PictureSection> PictureSections { get => pictureSections; set => pictureSections = value; }
@@ -39,9 +53,9 @@ namespace WpfClient
 
       public int YDimension { get; set; }
 
-      internal void MoveSection()
+      internal void MoveSection(int id)
       {
-         game.MoveBlock(game.MoveableBlockIndexes.Last());
+         game.MoveBlock(id);
       }
 
       private void Game_BlockMoved(object sender, MoveBlockEventArgs e)
@@ -49,6 +63,12 @@ namespace WpfClient
          var tempSection = PictureSections[e.ToIndex];
          PictureSections[e.ToIndex] = PictureSections[e.FromIndex];
          PictureSections[e.FromIndex] = tempSection;
+
+         foreach (var item in PictureSections)
+         {
+            MoveSectionCommand.RaiseCanExecuteChanged();
+         }
+
       }
       private void InitializeSections(int xDimension, int yDimension)
       {
@@ -57,7 +77,7 @@ namespace WpfClient
          Int32Rect rect;
          int index;
 
-         BitmapImage bitmap = new BitmapImage(new Uri(@"D:\RG\Pictures\Saved Pictures\2020\IMG_5381.JPG"));
+         BitmapImage bitmap = new BitmapImage(new Uri("pack://application:,,,/Images/Cloe1.jpg"));
          int sectionWidth = (int)bitmap.PixelWidth / xDimension;
          int sectionHeight = (int)bitmap.PixelHeight / yDimension;
 
