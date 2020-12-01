@@ -6,5 +6,6 @@ namespace WpfClient
    {
       public int Id { get; set; }
       public Image ImageMember { get; set; }
+
    }
 }

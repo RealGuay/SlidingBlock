@@ -20,15 +20,19 @@ namespace WpfClient
    /// </summary>
    public partial class MainWindow : Window
    {
+      private MainViewModel mainViewModel;
+
       public MainWindow()
       {
          InitializeComponent();
+         mainViewModel = new MainViewModel();
+         DataContext = mainViewModel;
          this.Loaded += MainWindow_Loaded;
       }
 
       private void MainWindow_Loaded(object sender, RoutedEventArgs e)
       {
-         MainViewModel model = (MainViewModel) DataContext;
+         //MainViewModel model = (MainViewModel) DataContext;
       }
 
    }
