@@ -5,37 +5,37 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WpfClient"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" SizeToContent="WidthAndHeight" MinWidth="400" MinHeight="200">
    <Window.DataContext>
       <local:MainViewModel></local:MainViewModel>
    </Window.DataContext>
    <Grid>
       <Grid.ColumnDefinitions>
-         <ColumnDefinition/>
-         <ColumnDefinition Width="Auto"/>
-         <ColumnDefinition/>
+         <ColumnDefinition MinWidth="20" />
+         <ColumnDefinition Width="Auto" MinWidth="20" />
+         <ColumnDefinition MinWidth="20" />
       </Grid.ColumnDefinitions>
       <Grid.RowDefinitions>
-         <RowDefinition />
-         <RowDefinition Height="Auto"/>
-         <RowDefinition />
+         <RowDefinition MinHeight="20" />
+         <RowDefinition Height="Auto" MinHeight="20" />
+         <RowDefinition MinHeight="20" />
       </Grid.RowDefinitions>
-      <ItemsControl Grid.Row="1" Grid.Column="1" ItemsSource="{Binding PictureSections}" AlternationCount="0">
+      <Border Grid.Row="1" Grid.Column="1" BorderBrush="Green" BorderThickness="10">
+      <ItemsControl ItemsSource="{Binding PictureSections}">
          <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
-               <UniformGrid Columns="{Binding XDimension}"/>
+               <UniformGrid Columns="{Binding XDimension}" />
             </ItemsPanelTemplate>
          </ItemsControl.ItemsPanel>
          <ItemsControl.ItemTemplate>
             <DataTemplate>
                <Grid>
-                  <Button Padding="1" Content ="{Binding ImageMember}" Command="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}, Path=DataContext.MoveSectionCommand}" CommandParameter="{Binding}"/>
+                  <Button Padding="1" Content ="{Binding ImageMember}" Command="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}, Path=DataContext.MoveSectionCommand}" CommandParameter="{Binding}" />
                   <TextBlock Text="{Binding Id}" HorizontalAlignment="Center" VerticalAlignment="Bottom" />
                </Grid>
             </DataTemplate>
          </ItemsControl.ItemTemplate>
-         
-         
       </ItemsControl>
+      </Border>
    </Grid>
 </Window>
