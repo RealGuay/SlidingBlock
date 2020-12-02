@@ -1,4 +1,5 @@
 ﻿using Prism.Commands;
+using Prism.Mvvm;
 using SlidingLogic;
 using System;
 using System.Collections.ObjectModel;
@@ -8,12 +9,15 @@ using System.Windows.Media.Imaging;
 
 namespace WpfClient
 {
-   public class MainViewModel
+   public class MainViewModel : BindableBase
    {
-      private PictureSection emptyPictureSection;
-      private GameRules game;
-      private ObservableCollection<PictureSection> pictureSections;
-      private PictureSection removedPictureSection;
+      private PictureSection _emptyPictureSection;
+      private GameRules _game;
+      private ObservableCollection<PictureSection> _pictureSections;
+      private PictureSection _removedPictureSection;
+      private int _xDimension;
+      private int _yDimension;
+
       public MainViewModel()
       {
          XDimension = 3;
@@ -23,13 +27,17 @@ namespace WpfClient
          CreateGme();
       }
 
-      public DelegateCommand<object> MoveSectionCommand { get; set; }
+      public DelegateCommand<object> MoveSectionCommand { get; private set; }
 
-      public ObservableCollection<PictureSection> PictureSections { get => pictureSections; set => pictureSections = value; }
+      public ObservableCollection<PictureSection> PictureSections
+      {
+         get { return _pictureSections; }
+         set { SetProperty(ref _pictureSections, value); }
+      }
 
-      public int XDimension { get; set; }
+      public int XDimension { get => _xDimension; set => SetProperty(ref _xDimension, value); }
 
-      public int YDimension { get; set; }
+      public int YDimension { get => _yDimension; set => SetProperty(ref _yDimension, value); }
 
       internal void Initialize()
       {
@@ -38,47 +46,26 @@ namespace WpfClient
          ShuffleSections();
       }
 
-      private void CreateGme()
-      {
-         game = new GameRules(XDimension, YDimension);
-         game.BlockMoved += Game_BlockMoved;
-      }
-
       internal void MoveSection(int index)
       {
-         game.MoveBlock(index);
+         _game.MoveBlock(index);
       }
 
       internal void ShuffleSections()
       {
-         game.ShuffleBlocks();
+         _game.ShuffleBlocks();
       }
 
       private bool CanMoveSection(object obj)
       {
          int index = GetIndexOfSectionId(obj);
-         return game.MoveableBlockIndexes.Contains(index);
+         return _game.MoveableBlockIndexes.Contains(index);
       }
 
-      private void Game_BlockMoved(object sender, MoveBlockEventArgs e)
+      private void CreateGme()
       {
-         var tempSection = PictureSections[e.ToIndex];
-         PictureSections[e.ToIndex] = PictureSections[e.FromIndex];
-         PictureSections[e.FromIndex] = tempSection;
-
-         MoveSectionCommand.RaiseCanExecuteChanged();
-      }
-
-      private int GetIndexOfSectionId(object obj)
-      {
-         PictureSection ps = obj as PictureSection;
-         if (ps is null)
-         {
-            throw new ArgumentException("Invalid object type", nameof(obj));
-         }
-
-         int index = PictureSections.IndexOf(ps);
-         return index;
+         _game = new GameRules(XDimension, YDimension);
+         _game.BlockMoved += Game_BlockMoved;
       }
 
       private void CreateSections(int xDimension, int yDimension)
@@ -105,7 +92,28 @@ namespace WpfClient
                PictureSections.Add(new PictureSection() { Id = index, ImageMember = imageSection });
             }
          }
-         emptyPictureSection = new PictureSection() { Id = -1, ImageMember = null };
+         _emptyPictureSection = new PictureSection() { Id = -1, ImageMember = null };
+      }
+
+      private void Game_BlockMoved(object sender, MoveBlockEventArgs e)
+      {
+         var tempSection = PictureSections[e.ToIndex];
+         PictureSections[e.ToIndex] = PictureSections[e.FromIndex];
+         PictureSections[e.FromIndex] = tempSection;
+
+         MoveSectionCommand.RaiseCanExecuteChanged();
+      }
+
+      private int GetIndexOfSectionId(object obj)
+      {
+         PictureSection ps = obj as PictureSection;
+         if (ps is null)
+         {
+            throw new ArgumentException("Invalid object type", nameof(obj));
+         }
+
+         int index = PictureSections.IndexOf(ps);
+         return index;
       }
 
       private void MoveSectionExecute(object id)
@@ -113,11 +121,12 @@ namespace WpfClient
          int index = GetIndexOfSectionId(id);
          MoveSection(index);
       }
+
       private void RemoveLastSection()
       {
          int lastIndex = PictureSections.Count - 1;
-         removedPictureSection = PictureSections[lastIndex];
-         PictureSections[lastIndex] = emptyPictureSection;
+         _removedPictureSection = PictureSections[lastIndex];
+         PictureSections[lastIndex] = _emptyPictureSection;
       }
    }
 }

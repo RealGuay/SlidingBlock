@@ -11,10 +11,15 @@
    </Window.DataContext>
    <Grid>
       <Grid.ColumnDefinitions>
-         <ColumnDefinition Width="*"/>
+         <ColumnDefinition/>
          <ColumnDefinition Width="Auto"/>
-         <ColumnDefinition Width="*"/>
+         <ColumnDefinition/>
       </Grid.ColumnDefinitions>
+      <Grid.RowDefinitions>
+         <RowDefinition />
+         <RowDefinition Height="Auto"/>
+         <RowDefinition />
+      </Grid.RowDefinitions>
       <ItemsControl Grid.Row="1" Grid.Column="1" ItemsSource="{Binding PictureSections}" AlternationCount="0">
          <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
