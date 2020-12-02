@@ -32,7 +32,7 @@ namespace WpfClient
 
       private void MainWindow_Loaded(object sender, RoutedEventArgs e)
       {
-         //MainViewModel model = (MainViewModel) DataContext;
+         mainViewModel.Initialize();
       }
 
    }

@@ -15,11 +15,6 @@
          <ColumnDefinition Width="Auto"/>
          <ColumnDefinition Width="*"/>
       </Grid.ColumnDefinitions>
-      <Grid.RowDefinitions>
-         <RowDefinition Height="*"/>
-         <RowDefinition Height="800"/>
-         <RowDefinition Height="*"/>
-      </Grid.RowDefinitions>
       <ItemsControl Grid.Row="1" Grid.Column="1" ItemsSource="{Binding PictureSections}" AlternationCount="0">
          <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
@@ -29,9 +24,8 @@
          <ItemsControl.ItemTemplate>
             <DataTemplate>
                <Grid>
-                  <!--<Image Source="{StaticResource Cloe1}" />-->
-                  <Button Padding="2" Content ="{Binding ImageMember}" Command="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}, Path=DataContext.MoveSectionCommand}" CommandParameter="{Binding Id}"/>
-                  <TextBlock Text="{Binding Id}" HorizontalAlignment="Right" VerticalAlignment="Bottom" />
+                  <Button Padding="1" Content ="{Binding ImageMember}" Command="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:MainWindow}}, Path=DataContext.MoveSectionCommand}" CommandParameter="{Binding}"/>
+                  <TextBlock Text="{Binding Id}" HorizontalAlignment="Center" VerticalAlignment="Bottom" />
                </Grid>
             </DataTemplate>
          </ItemsControl.ItemTemplate>

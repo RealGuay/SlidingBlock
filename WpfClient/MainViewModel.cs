@@ -2,7 +2,6 @@
 using SlidingLogic;
 using System;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
@@ -19,26 +18,35 @@ namespace WpfClient
       {
          XDimension = 3;
          YDimension = 4;
-         InitializeSections(XDimension, YDimension);
-         RemoveLastSection();
-
+         PictureSections = new ObservableCollection<PictureSection>();
          MoveSectionCommand = new DelegateCommand<object>(MoveSectionExecute, CanMoveSection);
-         game = new GameRules(XDimension, YDimension);
-         game.BlockMoved += Game_BlockMoved;
-
-         // ShuffleSections();
+         CreateGme();
       }
 
       public DelegateCommand<object> MoveSectionCommand { get; set; }
+
       public ObservableCollection<PictureSection> PictureSections { get => pictureSections; set => pictureSections = value; }
 
       public int XDimension { get; set; }
 
       public int YDimension { get; set; }
 
-      internal void MoveSection(int id)
+      internal void Initialize()
       {
-         game.MoveBlock(id);
+         CreateSections(XDimension, YDimension);
+         RemoveLastSection();
+         ShuffleSections();
+      }
+
+      private void CreateGme()
+      {
+         game = new GameRules(XDimension, YDimension);
+         game.BlockMoved += Game_BlockMoved;
+      }
+
+      internal void MoveSection(int index)
+      {
+         game.MoveBlock(index);
       }
 
       internal void ShuffleSections()
@@ -46,9 +54,9 @@ namespace WpfClient
          game.ShuffleBlocks();
       }
 
-      private bool CanMoveSection(object id)
+      private bool CanMoveSection(object obj)
       {
-         int index = GetIndexOfSectionId(id);
+         int index = GetIndexOfSectionId(obj);
          return game.MoveableBlockIndexes.Contains(index);
       }
 
@@ -61,26 +69,30 @@ namespace WpfClient
          MoveSectionCommand.RaiseCanExecuteChanged();
       }
 
-      private int GetIndexOfSectionId(object id)
+      private int GetIndexOfSectionId(object obj)
       {
-         PictureSection ps = PictureSections.First((s => s.Id == (int)id));
+         PictureSection ps = obj as PictureSection;
+         if (ps is null)
+         {
+            throw new ArgumentException("Invalid object type", nameof(obj));
+         }
+
          int index = PictureSections.IndexOf(ps);
          return index;
       }
 
-      private void InitializeSections(int xDimension, int yDimension)
+      private void CreateSections(int xDimension, int yDimension)
       {
          CroppedBitmap cb;
          Image imageSection;
          Int32Rect rect;
          int index;
 
-         //BitmapImage bitmapImage = new BitmapImage(new Uri("pack://application:,,,/Images/Cloe1.jpg"));
-         BitmapImage bitmapImage = new BitmapImage(new Uri(@"D:\RG\Pictures\Saved Pictures\2020\IMG_5056.JPG"));
+         BitmapImage bitmapImage = new BitmapImage(new Uri("pack://application:,,,/Images/Cloe1.jpg"));
+         //BitmapImage bitmapImage = new BitmapImage(new Uri(@"D:\RG\Pictures\Saved Pictures\2020\IMG_5056.JPG"));
          int sectionWidth = (int)bitmapImage.PixelWidth / xDimension;
          int sectionHeight = (int)bitmapImage.PixelHeight / yDimension;
 
-         PictureSections = new ObservableCollection<PictureSection>();
          for (int j = 0; j < yDimension; j++)
          {
             for (int i = 0; i < xDimension; i++)

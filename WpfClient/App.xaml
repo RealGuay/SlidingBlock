@@ -4,6 +4,5 @@
              xmlns:local="clr-namespace:WpfClient"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-      <!--<BitmapImage x:Key="Cloe1" UriSource="/Images/Cloe1.jpg"/>-->
    </Application.Resources>
 </Application>
