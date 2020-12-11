@@ -15,6 +15,8 @@ namespace WpfClient
       private GameRules _game;
       private ObservableCollection<PictureSection> _pictureSections;
       private PictureSection _removedPictureSection;
+      private int _totalImagePixelHeight;
+      private int _totalImagePixelWidth;
       private int _xDimension;
       private int _yDimension;
 
@@ -35,25 +37,17 @@ namespace WpfClient
          set { SetProperty(ref _pictureSections, value); }
       }
 
+      public int TotalImagePixelHeight { get => _totalImagePixelHeight; set => SetProperty(ref _totalImagePixelHeight, value); }
+      public int TotalImagePixelWidth { get => _totalImagePixelWidth; set => SetProperty(ref _totalImagePixelWidth, value); }
       public int XDimension { get => _xDimension; set => SetProperty(ref _xDimension, value); }
 
       public int YDimension { get => _yDimension; set => SetProperty(ref _yDimension, value); }
 
       internal void Initialize()
       {
-         CreateSections(XDimension, YDimension);
+         CreateSections();
          RemoveLastSection();
          ShuffleSections();
-      }
-
-      internal void MoveSection(int index)
-      {
-         _game.MoveBlock(index);
-      }
-
-      internal void ShuffleSections()
-      {
-         _game.ShuffleBlocks();
       }
 
       private bool CanMoveSection(object obj)
@@ -68,25 +62,55 @@ namespace WpfClient
          _game.BlockMoved += Game_BlockMoved;
       }
 
-      private void CreateSections(int xDimension, int yDimension)
+      private void CreateSections()
       {
          CroppedBitmap cb;
          Image imageSection;
          Int32Rect rect;
          int index;
+         //Uri imageLocation = new Uri(@"D:\RG\Pictures\Saved Pictures\2020\IMG_5049.JPG");
+         Uri imageLocation = new Uri("pack://application:,,,/Images/Cloe1.jpg");
 
-         BitmapImage bitmapImage = new BitmapImage(new Uri("pack://application:,,,/Images/Cloe1.jpg"));
-         //BitmapImage bitmapImage = new BitmapImage(new Uri(@"D:\RG\Pictures\Saved Pictures\2020\IMG_5056.JPG"));
-         int sectionWidth = (int)bitmapImage.PixelWidth / xDimension;
-         int sectionHeight = (int)bitmapImage.PixelHeight / yDimension;
+         var sysWidth = System.Windows.SystemParameters.WorkArea.Width;
+         var sysHeight = System.Windows.SystemParameters.WorkArea.Height;
 
-         for (int j = 0; j < yDimension; j++)
+
+         BitmapImage biTmp = new BitmapImage(imageLocation);
+         double xFactor = biTmp.PixelWidth / biTmp.Width;
+         double yFactor = biTmp.PixelHeight / biTmp.Height;
+         TotalImagePixelWidth = biTmp.PixelWidth;
+         TotalImagePixelHeight = biTmp.PixelHeight;
+         bool scaleVertical = sysWidth / biTmp.Width > sysHeight / biTmp.Height;
+
+        //BitmapImage bitmapImage = new BitmapImage(new Uri("pack://application:,,,/Images/Cloe.jpg"));
+        //BitmapImage bi = new BitmapImage(new Uri(@"D:\RG\Pictures\Saved Pictures\2020\IMG_5060.JPG"));
+        BitmapImage bi = new BitmapImage();
+         bi.BeginInit();
+         bi.UriSource = imageLocation;
+         if (scaleVertical)
          {
-            for (int i = 0; i < xDimension; i++)
+            bi.DecodePixelHeight = (int)(sysHeight * yFactor * 0.9);
+         }
+         else
+         {
+            bi.DecodePixelWidth = (int)(sysWidth * xFactor * 0.9);
+         }
+
+         bi.EndInit();
+
+         int sectionWidth = bi.PixelWidth / XDimension;
+         int sectionHeight = bi.PixelHeight / YDimension;
+
+         for (int j = 0; j < YDimension; j++)
+         {
+            for (int i = 0; i < XDimension; i++)
             {
-               index = j * xDimension + i;
-               rect = new Int32Rect(i * sectionWidth, j * sectionHeight, sectionWidth, sectionHeight);
-               cb = new CroppedBitmap(bitmapImage, rect);
+               index = j * XDimension + i;
+               rect = new Int32Rect(i * sectionWidth,
+                                    j * sectionHeight,
+                                    sectionWidth,
+                                    sectionHeight);
+               cb = new CroppedBitmap(bi, rect);
                imageSection = new Image();
                imageSection.Source = cb;
                PictureSections.Add(new PictureSection() { Id = index, ImageMember = imageSection });
@@ -116,6 +140,11 @@ namespace WpfClient
          return index;
       }
 
+      private void MoveSection(int index)
+      {
+         _game.MoveBlock(index);
+      }
+
       private void MoveSectionExecute(object id)
       {
          int index = GetIndexOfSectionId(id);
@@ -127,6 +156,11 @@ namespace WpfClient
          int lastIndex = PictureSections.Count - 1;
          _removedPictureSection = PictureSections[lastIndex];
          PictureSections[lastIndex] = _emptyPictureSection;
+      }
+
+      private void ShuffleSections()
+      {
+         _game.ShuffleBlocks();
       }
    }
 }
