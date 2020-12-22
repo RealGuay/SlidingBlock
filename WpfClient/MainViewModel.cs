@@ -16,7 +16,7 @@ namespace WpfClient
       private PictureSection _emptyPictureSection;
       private bool _isShuffling;
 
-      public DelegateCommand<object> MoveSectionCommand { get; private set; }
+      public DelegateCommand<PictureSection> MoveSectionCommand { get; private set; }
 
       public ObservableCollection<PictureSection> PictureSections
       {
@@ -32,7 +32,7 @@ namespace WpfClient
          XDimension = 3;
          YDimension = 4;
          PictureSections = new ObservableCollection<PictureSection>();
-         MoveSectionCommand = new DelegateCommand<object>(MoveSectionExecute, CanMoveSection);
+         MoveSectionCommand = new DelegateCommand<PictureSection>(MoveSectionExecute, CanMoveSection);
          CreateGame();
       }
 
@@ -41,12 +41,11 @@ namespace WpfClient
          CreateSections();
          RemoveLastSection();
          ShuffleSections();
-
       }
 
-      private bool CanMoveSection(object obj)
+      private bool CanMoveSection(PictureSection ps)
       {
-         int index = GetIndexOfSectionId(obj);
+         int index = GetIndexOfSectionId(ps);
          return _game.MoveableBlockIndexes.Contains(index);
       }
 
@@ -94,14 +93,13 @@ namespace WpfClient
          PictureSections[^1] = _removedPictureSection; // ^1 : one "from the end"
       }
 
-      private int GetIndexOfSectionId(object obj)
+      private int GetIndexOfSectionId(PictureSection ps)
       {
-         if (!(obj is PictureSection ps))
-         {
-            throw new ArgumentException("Invalid object type", nameof(obj));
-         }
-
          int index = PictureSections.IndexOf(ps);
+         if (index == -1)
+         {
+            throw new InvalidOperationException($"Picture section not found {ps.Id}");
+         }
          return index;
       }
 
@@ -110,9 +108,9 @@ namespace WpfClient
          _game.MoveBlock(index);
       }
 
-      private void MoveSectionExecute(object id)
+      private void MoveSectionExecute(PictureSection ps)
       {
-         int index = GetIndexOfSectionId(id);
+         int index = GetIndexOfSectionId(ps);
          MoveSection(index);
       }
 
