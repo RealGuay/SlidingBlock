@@ -14,15 +14,7 @@ namespace WpfClient
       private ObservableCollection<PictureSection> _pictureSections;
       private PictureSection _removedPictureSection;
       private PictureSection _emptyPictureSection;
-
-      public MainViewModel()
-      {
-         XDimension = 3;
-         YDimension = 4;
-         PictureSections = new ObservableCollection<PictureSection>();
-         MoveSectionCommand = new DelegateCommand<object>(MoveSectionExecute, CanMoveSection);
-         CreateGame();
-      }
+      private bool _isShuffling;
 
       public DelegateCommand<object> MoveSectionCommand { get; private set; }
 
@@ -35,11 +27,21 @@ namespace WpfClient
       public int XDimension { get => _xDimension; set => SetProperty(ref _xDimension, value); }
       public int YDimension { get => _yDimension; set => SetProperty(ref _yDimension, value); }
 
+      public MainViewModel()
+      {
+         XDimension = 3;
+         YDimension = 4;
+         PictureSections = new ObservableCollection<PictureSection>();
+         MoveSectionCommand = new DelegateCommand<object>(MoveSectionExecute, CanMoveSection);
+         CreateGame();
+      }
+
       internal void Initialize()
       {
          CreateSections();
          RemoveLastSection();
          ShuffleSections();
+
       }
 
       private bool CanMoveSection(object obj)
@@ -67,7 +69,7 @@ namespace WpfClient
          PictureSections[e.ToIndex] = PictureSections[e.FromIndex];
          PictureSections[e.FromIndex] = tempSection;
 
-         if (_game.IsShuffled())
+         if (_isShuffling || _game.IsShuffled())
          {
             MoveSectionCommand.RaiseCanExecuteChanged();
          }
@@ -123,7 +125,9 @@ namespace WpfClient
 
       private void ShuffleSections()
       {
+         _isShuffling = true;
          _game.ShuffleBlocks();
+         _isShuffling = false;
       }
    }
 }
