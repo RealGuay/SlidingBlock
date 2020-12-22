@@ -64,58 +64,8 @@ namespace WpfClient
 
       private void CreateSections()
       {
-         CroppedBitmap cb;
-         Image imageSection;
-         Int32Rect rect;
-         int index;
-         //Uri imageLocation = new Uri(@"D:\RG\Pictures\Saved Pictures\2020\IMG_5049.JPG");
-         Uri imageLocation = new Uri("pack://application:,,,/Images/Cloe1.jpg");
-
-         var sysWidth = System.Windows.SystemParameters.WorkArea.Width;
-         var sysHeight = System.Windows.SystemParameters.WorkArea.Height;
-
-
-         BitmapImage biTmp = new BitmapImage(imageLocation);
-         double xFactor = biTmp.PixelWidth / biTmp.Width;
-         double yFactor = biTmp.PixelHeight / biTmp.Height;
-         TotalImagePixelWidth = biTmp.PixelWidth;
-         TotalImagePixelHeight = biTmp.PixelHeight;
-         bool scaleVertical = sysWidth / biTmp.Width > sysHeight / biTmp.Height;
-
-        //BitmapImage bitmapImage = new BitmapImage(new Uri("pack://application:,,,/Images/Cloe.jpg"));
-        //BitmapImage bi = new BitmapImage(new Uri(@"D:\RG\Pictures\Saved Pictures\2020\IMG_5060.JPG"));
-        BitmapImage bi = new BitmapImage();
-         bi.BeginInit();
-         bi.UriSource = imageLocation;
-         if (scaleVertical)
-         {
-            bi.DecodePixelHeight = (int)(sysHeight * yFactor * 0.9);
-         }
-         else
-         {
-            bi.DecodePixelWidth = (int)(sysWidth * xFactor * 0.9);
-         }
-
-         bi.EndInit();
-
-         int sectionWidth = bi.PixelWidth / XDimension;
-         int sectionHeight = bi.PixelHeight / YDimension;
-
-         for (int j = 0; j < YDimension; j++)
-         {
-            for (int i = 0; i < XDimension; i++)
-            {
-               index = j * XDimension + i;
-               rect = new Int32Rect(i * sectionWidth,
-                                    j * sectionHeight,
-                                    sectionWidth,
-                                    sectionHeight);
-               cb = new CroppedBitmap(bi, rect);
-               imageSection = new Image();
-               imageSection.Source = cb;
-               PictureSections.Add(new PictureSection() { Id = index, ImageMember = imageSection });
-            }
-         }
+         ImageSplitter splitter = new ImageSplitter(XDimension, YDimension, "pack://application:,,,/Images/Cloe1.jpg");
+         splitter.CreateSections(PictureSections);
          _emptyPictureSection = new PictureSection() { Id = -1, ImageMember = null };
       }
 
