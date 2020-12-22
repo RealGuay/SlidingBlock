@@ -21,7 +21,7 @@ namespace WpfClient
          YDimension = 4;
          PictureSections = new ObservableCollection<PictureSection>();
          MoveSectionCommand = new DelegateCommand<object>(MoveSectionExecute, CanMoveSection);
-         CreateGme();
+         CreateGame();
       }
 
       public DelegateCommand<object> MoveSectionCommand { get; private set; }
@@ -48,7 +48,7 @@ namespace WpfClient
          return _game.MoveableBlockIndexes.Contains(index);
       }
 
-      private void CreateGme()
+      private void CreateGame()
       {
          _game = new GameRules(XDimension, YDimension);
          _game.BlockMoved += Game_BlockMoved;
@@ -67,7 +67,29 @@ namespace WpfClient
          PictureSections[e.ToIndex] = PictureSections[e.FromIndex];
          PictureSections[e.FromIndex] = tempSection;
 
-         MoveSectionCommand.RaiseCanExecuteChanged();
+         if (_game.IsShuffled())
+         {
+            MoveSectionCommand.RaiseCanExecuteChanged();
+         }
+         else
+         {
+            EndGame();
+         }
+      }
+
+      private void EndGame()
+      {
+         ShowFullImage();
+      }
+
+      private void ShowFullImage()
+      {
+         ReplaceLastSection();
+      }
+
+      private void ReplaceLastSection()
+      {
+         PictureSections[^1] = _removedPictureSection; // ^1 : one "from the end"
       }
 
       private int GetIndexOfSectionId(object obj)
