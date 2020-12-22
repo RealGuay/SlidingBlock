@@ -3,22 +3,17 @@ using Prism.Mvvm;
 using SlidingLogic;
 using System;
 using System.Collections.ObjectModel;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Media.Imaging;
 
 namespace WpfClient
 {
    public class MainViewModel : BindableBase
    {
-      private PictureSection _emptyPictureSection;
+      private int _xDimension;
+      private int _yDimension;
       private GameRules _game;
       private ObservableCollection<PictureSection> _pictureSections;
       private PictureSection _removedPictureSection;
-      private int _totalImagePixelHeight;
-      private int _totalImagePixelWidth;
-      private int _xDimension;
-      private int _yDimension;
+      private PictureSection _emptyPictureSection;
 
       public MainViewModel()
       {
@@ -37,10 +32,7 @@ namespace WpfClient
          set { SetProperty(ref _pictureSections, value); }
       }
 
-      public int TotalImagePixelHeight { get => _totalImagePixelHeight; set => SetProperty(ref _totalImagePixelHeight, value); }
-      public int TotalImagePixelWidth { get => _totalImagePixelWidth; set => SetProperty(ref _totalImagePixelWidth, value); }
       public int XDimension { get => _xDimension; set => SetProperty(ref _xDimension, value); }
-
       public int YDimension { get => _yDimension; set => SetProperty(ref _yDimension, value); }
 
       internal void Initialize()
@@ -80,8 +72,7 @@ namespace WpfClient
 
       private int GetIndexOfSectionId(object obj)
       {
-         PictureSection ps = obj as PictureSection;
-         if (ps is null)
+         if (!(obj is PictureSection ps))
          {
             throw new ArgumentException("Invalid object type", nameof(obj));
          }

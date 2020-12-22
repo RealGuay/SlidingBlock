@@ -26,17 +26,41 @@ namespace WpfClient
 
       public void CreateSections(ObservableCollection<PictureSection> pictureSections)
       {
+         Uri imageUri = new Uri(_imageLocation);
+         BitmapImage bi = new BitmapImage();
+         CalculateXXX(imageUri, bi);
+         SplitImage(pictureSections, bi);
+      }
+
+      private void CalculateXXX(Uri imageUri, BitmapImage bi)
+      {
          double xFactor, yFactor;
          bool scaleVertical;
-
-         Uri imageUri = new Uri(_imageLocation);
-
          CalculateScalingFactors(imageUri, out xFactor, out yFactor, out scaleVertical);
-
-         BitmapImage bi = new BitmapImage();
          DecodePixel(imageUri, xFactor, yFactor, scaleVertical, bi);
+      }
 
-         SplitImage(pictureSections, bi);
+      private void CalculateScalingFactors(Uri imageUri, out double xFactor, out double yFactor, out bool scaleVertical)
+      {
+         BitmapImage biTmp = new BitmapImage(imageUri);
+         xFactor = biTmp.PixelWidth / biTmp.Width;
+         yFactor = biTmp.PixelHeight / biTmp.Height;
+         scaleVertical = _screenWidth / biTmp.Width > _screenHeight / biTmp.Height;
+      }
+
+      private void DecodePixel(Uri imageUri, double xFactor, double yFactor, bool scaleVertical, BitmapImage bi)
+      {
+         bi.BeginInit();
+         bi.UriSource = imageUri;
+         if (scaleVertical)
+         {
+            bi.DecodePixelHeight = (int)(_screenHeight * yFactor * 0.9);
+         }
+         else
+         {
+            bi.DecodePixelWidth = (int)(_screenWidth * xFactor * 0.9);
+         }
+         bi.EndInit();
       }
 
       private void SplitImage(ObservableCollection<PictureSection> pictureSections, BitmapImage bi)
@@ -62,31 +86,6 @@ namespace WpfClient
                pictureSections.Add(new PictureSection() { Id = index, ImageMember = imageSection });
             }
          }
-      }
-
-      private void DecodePixel(Uri imageUri, double xFactor, double yFactor, bool scaleVertical, BitmapImage bi)
-      {
-         bi.BeginInit();
-         bi.UriSource = imageUri;
-         if (scaleVertical)
-         {
-            bi.DecodePixelHeight = (int)(_screenHeight * yFactor * 0.9);
-         }
-         else
-         {
-            bi.DecodePixelWidth = (int)(_screenWidth * xFactor * 0.9);
-         }
-         bi.EndInit();
-      }
-
-      private void CalculateScalingFactors(Uri imageUri, out double xFactor, out double yFactor, out bool scaleVertical)
-      {
-         BitmapImage biTmp = new BitmapImage(imageUri);
-         xFactor = biTmp.PixelWidth / biTmp.Width;
-         yFactor = biTmp.PixelHeight / biTmp.Height;
-         //TotalImagePixelWidth = biTmp.PixelWidth;
-         //TotalImagePixelHeight = biTmp.PixelHeight;
-         scaleVertical = _screenWidth / biTmp.Width > _screenHeight / biTmp.Height;
       }
    }
 }
