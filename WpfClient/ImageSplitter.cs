@@ -14,6 +14,12 @@ namespace WpfClient
       private readonly double _screenWidth;
       private readonly double _screenHeight;
 
+      private enum ScalingOrientation
+      {
+         Horizontal,
+         Vertical
+      }
+
       public ImageSplitter(int x, int y, string imageLocation)
       {
          _xDimension = x;
@@ -27,43 +33,63 @@ namespace WpfClient
       public void CreateSections(ObservableCollection<PictureSection> pictureSections)
       {
          Uri imageUri = new Uri(_imageLocation);
+         CalculateMaxPixelSizes(imageUri, out int maxDecodePixelHeight, out int maxDecodePixelWidth);
+         int requestedPixelHeight = (int)(maxDecodePixelHeight * 0.8);
+         int requestedPixelWidth = (int)(maxDecodePixelWidth * 0.8);
+
          BitmapImage bi = new BitmapImage();
-         CalculateXXX(imageUri, bi);
-         SplitImage(pictureSections, bi);
+         ResizeToFitOnScreen(bi, imageUri, requestedPixelHeight, requestedPixelWidth);
+         SplitInSections(bi, pictureSections);
       }
 
-      private void CalculateXXX(Uri imageUri, BitmapImage bi)
+      private void GetDisplaySize(BitmapImage bi, out double displayHeight, out double displayWidth)
       {
-         double xFactor, yFactor;
-         bool scaleVertical;
-         CalculateScalingFactors(imageUri, out xFactor, out yFactor, out scaleVertical);
-         DecodePixel(imageUri, xFactor, yFactor, scaleVertical, bi);
+         displayHeight = bi.Height;
+         displayWidth = bi.Width;
       }
 
-      private void CalculateScalingFactors(Uri imageUri, out double xFactor, out double yFactor, out bool scaleVertical)
+      private void GetPixelSize(BitmapImage bi, out int pixelHeight, out int pixelWidth)
+      {
+         pixelHeight = bi.PixelHeight;
+         pixelWidth = bi.PixelWidth;
+      }
+
+      private void CalculateMaxPixelSizes(Uri imageUri, out int maxDecodePixelHeight, out int maxDecodePixelWidth)
       {
          BitmapImage biTmp = new BitmapImage(imageUri);
-         xFactor = biTmp.PixelWidth / biTmp.Width;
-         yFactor = biTmp.PixelHeight / biTmp.Height;
-         scaleVertical = _screenWidth / biTmp.Width > _screenHeight / biTmp.Height;
-      }
 
-      private void DecodePixel(Uri imageUri, double xFactor, double yFactor, bool scaleVertical, BitmapImage bi)
-      {
-         bi.BeginInit();
-         bi.UriSource = imageUri;
-         if (scaleVertical)
+         GetPixelSize(biTmp, out int pixelHeight, out int pixelWidth);
+         GetDisplaySize(biTmp, out double displayHeight, out double displayWidth);
+         // factors
+         double xFactor = pixelWidth / displayWidth;
+         double yFactor = pixelHeight / displayHeight;
+
+         // resize orientation
+         ScalingOrientation orientation = _screenWidth / displayWidth > _screenHeight / displayHeight
+            ? ScalingOrientation.Vertical
+            : ScalingOrientation.Horizontal;
+         if (orientation == ScalingOrientation.Horizontal)
          {
-            bi.DecodePixelHeight = (int)(_screenHeight * yFactor * 0.9);
+            maxDecodePixelHeight = 0;
+            maxDecodePixelWidth = (int)(_screenWidth * xFactor * 0.9);
          }
          else
          {
-            bi.DecodePixelWidth = (int)(_screenWidth * xFactor * 0.9);
+            maxDecodePixelHeight = (int)(_screenHeight * yFactor * 0.9);
+            maxDecodePixelWidth = 0;
          }
+      }
+
+      private void ResizeToFitOnScreen(BitmapImage bi, Uri imageUri, int requestedPixelHeight, int requestedPixelWidth)
+      {
+         bi.BeginInit();
+         bi.UriSource = imageUri;
+         bi.DecodePixelHeight = requestedPixelHeight;
+         bi.DecodePixelWidth = requestedPixelWidth;
          bi.EndInit();
       }
 
-      private void SplitImage(ObservableCollection<PictureSection> pictureSections, BitmapImage bi)
+      private void SplitInSections(BitmapImage bi, ObservableCollection<PictureSection> pictureSections)
       {
          int sectionWidth = bi.PixelWidth / _xDimension;
          int sectionHeight = bi.PixelHeight / _yDimension;
