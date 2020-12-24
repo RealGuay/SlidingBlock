@@ -8,6 +8,7 @@ namespace WpfClient
 {
    public class ImageSplitter
    {
+      private const int _frameReservedPixel = 100;
       private int _xDimension;
       private int _yDimension;
       private string _imageLocation;
@@ -34,12 +35,39 @@ namespace WpfClient
       {
          Uri imageUri = new Uri(_imageLocation);
          CalculateMaxPixelSizes(imageUri, out int maxDecodePixelHeight, out int maxDecodePixelWidth);
-         int requestedPixelHeight = (int)(maxDecodePixelHeight * 0.8);
-         int requestedPixelWidth = (int)(maxDecodePixelWidth * 0.8);
+         int requestedPixelHeight = Math.Max(maxDecodePixelHeight - _frameReservedPixel, 0);
+         int requestedPixelWidth = Math.Max(maxDecodePixelWidth - _frameReservedPixel, 0);
 
          BitmapImage bi = new BitmapImage();
          ResizeToFitOnScreen(bi, imageUri, requestedPixelHeight, requestedPixelWidth);
          SplitInSections(bi, pictureSections);
+      }
+
+      private void CalculateMaxPixelSizes(Uri imageUri, out int maxDecodePixelHeight, out int maxDecodePixelWidth)
+      {
+         BitmapImage biTmp = new BitmapImage(imageUri);
+
+         GetPixelSize(biTmp, out int pixelHeight, out int pixelWidth);
+         GetDisplaySize(biTmp, out double displayHeight, out double displayWidth);
+
+         // factors
+         double xFactor = pixelWidth / displayWidth;
+         double yFactor = pixelHeight / displayHeight;
+
+         // resize orientation
+         ScalingOrientation orientation = _screenWidth / displayWidth > _screenHeight / displayHeight
+            ? ScalingOrientation.Vertical
+            : ScalingOrientation.Horizontal;
+         if (orientation == ScalingOrientation.Horizontal)
+         {
+            maxDecodePixelHeight = 0;
+            maxDecodePixelWidth = (int)(_screenWidth * xFactor);
+         }
+         else
+         {
+            maxDecodePixelHeight = (int)(_screenHeight * yFactor);
+            maxDecodePixelWidth = 0;
+         }
       }
 
       private void GetDisplaySize(BitmapImage bi, out double displayHeight, out double displayWidth)
@@ -52,32 +80,6 @@ namespace WpfClient
       {
          pixelHeight = bi.PixelHeight;
          pixelWidth = bi.PixelWidth;
-      }
-
-      private void CalculateMaxPixelSizes(Uri imageUri, out int maxDecodePixelHeight, out int maxDecodePixelWidth)
-      {
-         BitmapImage biTmp = new BitmapImage(imageUri);
-
-         GetPixelSize(biTmp, out int pixelHeight, out int pixelWidth);
-         GetDisplaySize(biTmp, out double displayHeight, out double displayWidth);
-         // factors
-         double xFactor = pixelWidth / displayWidth;
-         double yFactor = pixelHeight / displayHeight;
-
-         // resize orientation
-         ScalingOrientation orientation = _screenWidth / displayWidth > _screenHeight / displayHeight
-            ? ScalingOrientation.Vertical
-            : ScalingOrientation.Horizontal;
-         if (orientation == ScalingOrientation.Horizontal)
-         {
-            maxDecodePixelHeight = 0;
-            maxDecodePixelWidth = (int)(_screenWidth * xFactor * 0.9);
-         }
-         else
-         {
-            maxDecodePixelHeight = (int)(_screenHeight * yFactor * 0.9);
-            maxDecodePixelWidth = 0;
-         }
       }
 
       private void ResizeToFitOnScreen(BitmapImage bi, Uri imageUri, int requestedPixelHeight, int requestedPixelWidth)
