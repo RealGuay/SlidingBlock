@@ -55,7 +55,7 @@ namespace WpfClient
          double yFactor = pixelHeight / displayHeight;
 
          // resize orientation
-         ScalingOrientation orientation = _screenWidth / displayWidth > _screenHeight / displayHeight
+         ScalingOrientation orientation = (_screenWidth / displayWidth) > (_screenHeight / displayHeight)
             ? ScalingOrientation.Vertical
             : ScalingOrientation.Horizontal;
          if (orientation == ScalingOrientation.Horizontal)
@@ -93,13 +93,23 @@ namespace WpfClient
 
       private void SplitInSections(BitmapImage bi, ObservableCollection<PictureSection> pictureSections)
       {
-         int sectionWidth = bi.PixelWidth / _xDimension;
-         int sectionHeight = bi.PixelHeight / _yDimension;
+         CalculateSectionSizes(bi, out int sectionWidth, out int sectionHeight);
+         GenerateSections(bi, pictureSections, sectionWidth, sectionHeight);
+      }
 
+      private void CalculateSectionSizes(BitmapImage bi, out int sectionWidth, out int sectionHeight)
+      {
+         sectionWidth = bi.PixelWidth / _xDimension;
+         sectionHeight = bi.PixelHeight / _yDimension;
+      }
+
+      private void GenerateSections(BitmapImage bi, ObservableCollection<PictureSection> pictureSections, int sectionWidth, int sectionHeight)
+      {
+         int index;
+         Int32Rect rect;
          CroppedBitmap cb;
          Image imageSection;
-         Int32Rect rect;
-         int index;
+
          for (int j = 0; j < _yDimension; j++)
          {
             for (int i = 0; i < _xDimension; i++)
