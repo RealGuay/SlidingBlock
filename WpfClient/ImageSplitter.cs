@@ -15,7 +15,7 @@ namespace WpfClient
       private readonly double _screenWidth;
       private readonly double _screenHeight;
 
-      private enum ScalingOrientation
+      private enum ResizeOrientation
       {
          Horizontal,
          Vertical
@@ -35,11 +35,9 @@ namespace WpfClient
       {
          Uri imageUri = new Uri(_imageLocation);
          CalculateMaxPixelSizes(imageUri, out int maxDecodePixelHeight, out int maxDecodePixelWidth);
-         int requestedPixelHeight = Math.Max(maxDecodePixelHeight - _frameReservedPixel, 0);
-         int requestedPixelWidth = Math.Max(maxDecodePixelWidth - _frameReservedPixel, 0);
 
          BitmapImage bi = new BitmapImage();
-         ResizeToFitOnScreen(bi, imageUri, requestedPixelHeight, requestedPixelWidth);
+         ResizeToFitOnScreen(bi, imageUri, maxDecodePixelHeight, maxDecodePixelWidth);
          SplitInSections(bi, pictureSections);
       }
 
@@ -49,23 +47,23 @@ namespace WpfClient
 
          GetPixelSize(biTmp, out int pixelHeight, out int pixelWidth);
          GetDisplaySize(biTmp, out double displayHeight, out double displayWidth);
-
          // factors
-         double xFactor = pixelWidth / displayWidth;
-         double yFactor = pixelHeight / displayHeight;
+         double xDisplayToPixelFactor = pixelWidth / displayWidth;
+         double yDisplayToPixelFactor = pixelHeight / displayHeight;
 
          // resize orientation
-         ScalingOrientation orientation = (_screenWidth / displayWidth) > (_screenHeight / displayHeight)
-            ? ScalingOrientation.Vertical
-            : ScalingOrientation.Horizontal;
-         if (orientation == ScalingOrientation.Horizontal)
+         ResizeOrientation orientation = (_screenWidth / displayWidth) > (_screenHeight / displayHeight)
+            ? ResizeOrientation.Vertical
+            : ResizeOrientation.Horizontal;
+
+         if (orientation == ResizeOrientation.Horizontal)
          {
             maxDecodePixelHeight = 0;
-            maxDecodePixelWidth = (int)(_screenWidth * xFactor);
+            maxDecodePixelWidth = (int)(_screenWidth * xDisplayToPixelFactor) - _frameReservedPixel;
          }
          else
          {
-            maxDecodePixelHeight = (int)(_screenHeight * yFactor);
+            maxDecodePixelHeight = (int)(_screenHeight * yDisplayToPixelFactor) - _frameReservedPixel;
             maxDecodePixelWidth = 0;
          }
       }
