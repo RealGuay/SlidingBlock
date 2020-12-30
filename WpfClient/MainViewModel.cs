@@ -14,7 +14,6 @@ namespace WpfClient
       private ObservableCollection<PictureSection> _pictureSections;
       private PictureSection _removedPictureSection;
       private PictureSection _emptyPictureSection;
-      private bool _isShuffling;
 
       public DelegateCommand<PictureSection> MoveSectionCommand { get; private set; }
 
@@ -33,26 +32,24 @@ namespace WpfClient
          YDimension = 4;
          PictureSections = new ObservableCollection<PictureSection>();
          MoveSectionCommand = new DelegateCommand<PictureSection>(MoveSectionExecute, CanMoveSection);
-         CreateGame();
+      }
+
+      private void MoveSectionExecute(PictureSection ps)
+      {
+         int index = GetIndexOfSection(ps);
+         _game.MoveBlock(index);
+      }
+
+      private bool CanMoveSection(PictureSection ps)
+      {
+         int index = GetIndexOfSection(ps);
+         return _game.MoveableBlockIndexes.Contains(index);
       }
 
       internal void Initialize()
       {
          CreateSections();
-         RemoveLastSection();
-         ShuffleSections();
-      }
-
-      private bool CanMoveSection(PictureSection ps)
-      {
-         int index = GetIndexOfSectionId(ps);
-         return _game.MoveableBlockIndexes.Contains(index);
-      }
-
-      private void CreateGame()
-      {
-         _game = new GameRules(XDimension, YDimension);
-         _game.BlockMoved += Game_BlockMoved;
+         CreateGame();
       }
 
       private void CreateSections()
@@ -62,38 +59,35 @@ namespace WpfClient
          _emptyPictureSection = new PictureSection() { Id = -1, ImageMember = null };
       }
 
+      private void CreateGame()
+      {
+         _game = new GameRules(XDimension, YDimension);
+         _game.BlockMoved += Game_BlockMoved;
+         _game.BlockRemoved += Game_BlockRemoved;
+         _game.RemovedBlockReplaced += Game_RemovedBlockReplaced;
+         _game.InitializeFrame();
+      }
+
       private void Game_BlockMoved(object sender, MoveBlockEventArgs e)
       {
          var tempSection = PictureSections[e.ToIndex];
          PictureSections[e.ToIndex] = PictureSections[e.FromIndex];
          PictureSections[e.FromIndex] = tempSection;
-
-         if (_isShuffling || _game.IsShuffled())
-         {
-            MoveSectionCommand.RaiseCanExecuteChanged();
-         }
-         else
-         {
-            EndGame();
-         }
+         MoveSectionCommand.RaiseCanExecuteChanged();
       }
 
-      private void EndGame()
+      private void Game_BlockRemoved(object sender, int index)
       {
-         ShowFullImage();
+         _removedPictureSection = PictureSections[index];
+         PictureSections[index] = _emptyPictureSection;
       }
 
-      private void ShowFullImage()
-      {
-         ReplaceLastSection();
-      }
-
-      private void ReplaceLastSection()
+      private void Game_RemovedBlockReplaced(object sender, EventArgs e)
       {
          PictureSections[^1] = _removedPictureSection; // ^1 : one "from the end"
       }
 
-      private int GetIndexOfSectionId(PictureSection ps)
+      private int GetIndexOfSection(PictureSection ps)
       {
          int index = PictureSections.IndexOf(ps);
          if (index == -1)
@@ -101,31 +95,6 @@ namespace WpfClient
             throw new InvalidOperationException($"Picture section not found {ps.Id}");
          }
          return index;
-      }
-
-      private void MoveSection(int index)
-      {
-         _game.MoveBlock(index);
-      }
-
-      private void MoveSectionExecute(PictureSection ps)
-      {
-         int index = GetIndexOfSectionId(ps);
-         MoveSection(index);
-      }
-
-      private void RemoveLastSection()
-      {
-         int lastIndex = PictureSections.Count - 1;
-         _removedPictureSection = PictureSections[lastIndex];
-         PictureSections[lastIndex] = _emptyPictureSection;
-      }
-
-      private void ShuffleSections()
-      {
-         _isShuffling = true;
-         _game.ShuffleBlocks();
-         _isShuffling = false;
       }
    }
 }
