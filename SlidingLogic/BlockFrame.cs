@@ -18,7 +18,7 @@ namespace SlidingLogic
          InitializeFrame(xDim, yDim);
       }
 
-      public void InitializeFrame(int xDim, int yDim)
+      private void InitializeFrame(int xDim, int yDim)
       {
          for (int i = 0; i < xDim * yDim; i++)
          {

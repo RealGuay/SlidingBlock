@@ -16,14 +16,20 @@ namespace SlidingLogic.Tests
       }
 
       [Test]
-      public void ShouldCreateFrame()
+      public void ShouldCreateFrameOnInitialize()
       {
+         game.CreateFrame();
+
          Assert.AreEqual(20, game.NbCells);
       }
 
       [Test]
       public void ShouldRemoveLastBlock()
       {
+         game.CreateFrame();
+
+         game.RemoveLastBlock();
+
          Assert.AreEqual(-1, game.GetBlockId(19));
       }
 
@@ -31,6 +37,8 @@ namespace SlidingLogic.Tests
       public void ShouldMoveBlock()
       {
          int index = 18;
+         InitFrameWithoutShuffling();
+
          game.MoveBlock(index);
 
          Assert.AreEqual(18, game.GetBlockId(19));
@@ -40,18 +48,24 @@ namespace SlidingLogic.Tests
       [Test]
       public void ShouldThrowArgumentExceptionIfMoveBlockOnNonMoveableBlock()
       {
+         InitFrameWithoutShuffling();
+
          Assert.Throws<ArgumentException>(() => game.MoveBlock(0));
       }
 
       [Test]
       public void ShouldThrowArgumentExceptionIfMoveBlockOnEmptyCell()
       {
+         InitFrameWithoutShuffling();
+
          Assert.Throws<ArgumentException>(() => game.MoveBlock(19));
       }
 
       [Test]
       public void ShouldProvideIndexesOfMoveableBlocksOnBottomRightCorner()
       {
+         InitFrameWithoutShuffling();
+
          // no move : right bottom corner is free at initialization
          List<int> foundIndexes = game.MoveableBlockIndexes;
 
@@ -62,6 +76,8 @@ namespace SlidingLogic.Tests
       [Test]
       public void ShouldProvideIndexesOfMoveableBlocksOnBottomLeftCorner()
       {
+         InitFrameWithoutShuffling();
+
          // free bottom left corner cell
          game.MoveBlock(18);
          game.MoveBlock(17);
@@ -75,6 +91,8 @@ namespace SlidingLogic.Tests
       [Test]
       public void ShouldProvideIndexesOfMoveableBlocksOnTopLeftCorner()
       {
+         InitFrameWithoutShuffling();
+
          // free top left corner cell
          game.MoveBlock(18);
          game.MoveBlock(17);
@@ -92,6 +110,8 @@ namespace SlidingLogic.Tests
       [Test]
       public void ShouldProvideIndexesOfMoveableBlocksOnTopRightCorner()
       {
+         InitFrameWithoutShuffling();
+
          // free top right corner cell
          game.MoveBlock(15);
          game.MoveBlock(11);
@@ -106,6 +126,8 @@ namespace SlidingLogic.Tests
       [Test]
       public void ShouldProvideIndexesOfMoveableBlocksOnTopRow()
       {
+         InitFrameWithoutShuffling();
+
          // free a top row cell
          game.MoveBlock(15);
          game.MoveBlock(14);
@@ -122,6 +144,8 @@ namespace SlidingLogic.Tests
       [Test]
       public void ShouldProvideIndexesOfMoveableBlocksOnBottomRow()
       {
+         InitFrameWithoutShuffling();
+
          // free a bottom row cell
          game.MoveBlock(18);
          game.MoveBlock(17);
@@ -134,6 +158,8 @@ namespace SlidingLogic.Tests
       [Test]
       public void ShouldProvideIndexesOfMoveableBlocksOnLeftColumn()
       {
+         InitFrameWithoutShuffling();
+
          // free a left column cell
          game.MoveBlock(18);
          game.MoveBlock(17);
@@ -149,6 +175,8 @@ namespace SlidingLogic.Tests
       [Test]
       public void ShouldProvideIndexesOfMoveableBlocksOnRightColumn()
       {
+         InitFrameWithoutShuffling();
+
          // free a right column cell
          game.MoveBlock(15);
          game.MoveBlock(11);
@@ -161,6 +189,8 @@ namespace SlidingLogic.Tests
       [Test]
       public void ShouldProvideIndexesOfMoveableBlocksOnSurrondedCell()
       {
+         InitFrameWithoutShuffling();
+
          // free a surrounded cell
          game.MoveBlock(15);
          game.MoveBlock(14);
@@ -176,6 +206,7 @@ namespace SlidingLogic.Tests
       {
          int fromIndex = -1;
          int toIndex = -1;
+         InitFrameWithoutShuffling();
 
          var wait = new AutoResetEvent(false);
          game.BlockMoved += (s, e) => { wait.Set(); fromIndex = e.FromIndex; toIndex = e.ToIndex; };
@@ -189,9 +220,10 @@ namespace SlidingLogic.Tests
       [Test]
       public void ShouldProvideBlockIdForEachCellInInitialState()
       {
+         InitFrameWithoutShuffling();
+
          List<int> expectedIds = new List<int>() { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, -1 };
          List<int> foundIds = new List<int>();
-
          for (int i = 0; i < game.NbCells; i++)
          {
             foundIds.Add(game.GetBlockId(i));
@@ -203,6 +235,8 @@ namespace SlidingLogic.Tests
       [Test]
       public void ShouldProvideBlockIdForEachCellAfterFourMoves()
       {
+         InitFrameWithoutShuffling();
+
          game.MoveBlock(18);
          game.MoveBlock(14);
          game.MoveBlock(13);
@@ -222,12 +256,16 @@ namespace SlidingLogic.Tests
       [Test]
       public void ShouldNotBeShuffledInitialy()
       {
+         InitFrameWithoutShuffling();
+
          bool isShuffled = game.IsShuffled();
          Assert.AreEqual(false, isShuffled);  // this is NOT true because it random  !!! (???)
       }
 
       public void ShouldNotBeShuffledAfterReversedMoves()
       {
+         InitFrameWithoutShuffling();
+
          game.MoveBlock(18);
          game.MoveBlock(14);
          game.MoveBlock(15);
@@ -243,6 +281,8 @@ namespace SlidingLogic.Tests
       [Test]
       public void ShouldBeShuffledAfterOneMove()
       {
+         InitFrameWithoutShuffling();
+
          game.MoveBlock(15);
 
          bool isShuffled = game.IsShuffled();
@@ -252,17 +292,40 @@ namespace SlidingLogic.Tests
       [Test]
       public void ShouldShuffleBlocks()
       {
+         InitFrameWithoutShuffling();
+
          game.ShuffleBlocks();
 
-         List<int> expectedIds = new List<int>() { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, -1 };
-         List<int> foundIds = new List<int>();
+         ReadAllCellIds(out List<int> expectedIds, out List<int> foundIds);
 
+         Assert.AreNotEqual(expectedIds, foundIds);
+      }
+
+      [Test]
+      public void ShouldShuffleBlocksOnInitializeFrame()
+      {
+         game.InitializeFrame();
+
+         ReadAllCellIds(out List<int> expectedIds, out List<int> foundIds);
+
+         Assert.AreNotEqual(expectedIds, foundIds);
+      }
+
+      private void InitFrameWithoutShuffling()
+      {
+         game.CreateFrame();
+         game.RemoveLastBlock();
+         game.FindMoveableBlockIndexes();
+      }
+
+      private void ReadAllCellIds(out List<int> expectedIds, out List<int> foundIds)
+      {
+         expectedIds = new List<int>() { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, -1 };
+         foundIds = new List<int>();
          for (int i = 0; i < game.NbCells; i++)
          {
             foundIds.Add(game.GetBlockId(i));
          }
-
-         Assert.AreNotEqual(expectedIds, foundIds);
       }
    }
 }

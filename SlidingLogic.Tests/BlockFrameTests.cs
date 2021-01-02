@@ -60,6 +60,20 @@ namespace SlidingLogic.Tests
       {
          Assert.Throws<ArgumentException>(() => new BlockFrame(4, 1), "yDim must be 2 or greater");
       }
+
+      [Test]
+      public void ShouldReplaceRemovedBlock()
+      {
+         int removeIndex = 3;
+         frame.RemoveBlock(removeIndex);
+         int removeId = frame.GetBlockId(removeIndex);
+         frame.ReplaceRemovedBlock();
+         ExtractAllBlockIds(out int[] frameCellIndexes, out int[] foundBlockIds);
+
+         Assert.AreEqual(-1, removeId);
+         Assert.AreEqual(frameCellIndexes, foundBlockIds);
+      }
+
       private void ExtractAllBlockIds(out int[] frameCellIndexes, out int[] foundBlockIds)
       {
          frameCellIndexes = new int[frame.NbCells];

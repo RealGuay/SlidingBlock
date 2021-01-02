@@ -18,6 +18,8 @@ namespace SlidingLogic
 
       public event EventHandler RemovedBlockReplaced;
 
+      public event EventHandler EndOfGameDetected;
+
       public List<int> MoveableBlockIndexes { get; }
       public int NbCells { get; private set; }
 
@@ -30,14 +32,19 @@ namespace SlidingLogic
 
       public void InitializeFrame()
       {
-         frame = new BlockFrame(xDim, yDim);
-         NbCells = frame.NbCells;
+         CreateFrame();
          RemoveLastBlock();
          FindMoveableBlockIndexes();
          ShuffleBlocks();
       }
 
-      private void RemoveLastBlock()
+      public void CreateFrame()
+      {
+         frame = new BlockFrame(xDim, yDim);
+         NbCells = frame.NbCells;
+      }
+
+      public void RemoveLastBlock()
       {
          int lastIndex = NbCells - 1;
          frame.RemoveBlock(lastIndex);
@@ -45,7 +52,7 @@ namespace SlidingLogic
          BlockRemoved?.Invoke(this, lastIndex);
       }
 
-      private void FindMoveableBlockIndexes()
+      public void FindMoveableBlockIndexes()
       {
          MoveableBlockIndexes.Clear();
 
@@ -125,6 +132,7 @@ namespace SlidingLogic
          if (!_isShuffling && !IsShuffled())
          {
             ReplaceRemovedBlock();
+            EndOfGameDetected?.Invoke(this, EventArgs.Empty);
          }
       }
 

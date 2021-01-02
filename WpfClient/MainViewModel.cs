@@ -3,6 +3,7 @@ using Prism.Mvvm;
 using SlidingLogic;
 using System;
 using System.Collections.ObjectModel;
+using System.Windows;
 
 namespace WpfClient
 {
@@ -65,6 +66,7 @@ namespace WpfClient
          _game.BlockMoved += Game_BlockMoved;
          _game.BlockRemoved += Game_BlockRemoved;
          _game.RemovedBlockReplaced += Game_RemovedBlockReplaced;
+         _game.EndOfGameDetected += Game_EndOfGameDetected;
          _game.InitializeFrame();
       }
 
@@ -85,6 +87,11 @@ namespace WpfClient
       private void Game_RemovedBlockReplaced(object sender, EventArgs e)
       {
          PictureSections[^1] = _removedPictureSection; // ^1 : one "from the end"
+      }
+
+      private void Game_EndOfGameDetected(object sender, EventArgs e)
+      {
+         MessageBox.Show("End of game !!!", "WOW!!!");
       }
 
       private int GetIndexOfSection(PictureSection ps)
