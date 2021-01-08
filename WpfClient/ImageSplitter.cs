@@ -8,10 +8,10 @@ namespace WpfClient
 {
    public class ImageSplitter
    {
-      private const int _frameReservedPixel = 100;
-      private int _xDimension;
-      private int _yDimension;
-      private string _imageLocation;
+      private const int _FrameReservedPixel = 120;
+      private readonly int _xDimension;
+      private readonly int _yDimension;
+      private readonly string _imageLocation;
       private readonly double _screenWidth;
       private readonly double _screenHeight;
 
@@ -59,11 +59,11 @@ namespace WpfClient
          if (orientation == ResizeOrientation.Horizontal)
          {
             maxDecodePixelHeight = 0;
-            maxDecodePixelWidth = (int)(_screenWidth * xDisplayToPixelFactor) - _frameReservedPixel;
+            maxDecodePixelWidth = (int)(_screenWidth * xDisplayToPixelFactor) - _FrameReservedPixel;
          }
          else
          {
-            maxDecodePixelHeight = (int)(_screenHeight * yDisplayToPixelFactor) - _frameReservedPixel;
+            maxDecodePixelHeight = (int)(_screenHeight * yDisplayToPixelFactor) - _FrameReservedPixel;
             maxDecodePixelWidth = 0;
          }
       }

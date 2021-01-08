@@ -10,46 +10,56 @@ namespace WpfClient
 {
    public class MainViewModel : BindableBase
    {
-      private int _xDimension;
-      private int _yDimension;
-      private int _moveCount;
-      private bool _isGameStarted;
-      private bool _isGameEnded;
+      private GameRules _game;
       private DateTime _startTime;
       private TimeSpan _playTime;
-      private string _playTimeString;
       private Timer _timer;
-      private GameRules _game;
-      private ObservableCollection<PictureSection> _pictureSections;
       private PictureSection _removedPictureSection;
       private PictureSection _emptyPictureSection;
-      public int XDimension { get => _xDimension; set => SetProperty(ref _xDimension, value); }
-      public int YDimension { get => _yDimension; set => SetProperty(ref _yDimension, value); }
-      public int MovesCount { get => _moveCount; set => SetProperty(ref _moveCount, value); }
-      public string PlayTimeString { get => _playTimeString; set => SetProperty(ref _playTimeString, value); }
+
+      #region Properties
+
+      private int xDimension;
+      public int XDimension { get => xDimension; set => SetProperty(ref xDimension, value); }
+
+      private int yDimension;
+      public int YDimension { get => yDimension; set => SetProperty(ref yDimension, value); }
+
+      private int moveCount;
+      public int MovesCount { get => moveCount; set => SetProperty(ref moveCount, value); }
+
+      private string playTimeString;
+      public string PlayTimeString { get => playTimeString; set => SetProperty(ref playTimeString, value); }
+
+      private bool isGameStarted;
 
       public bool IsGameStarted
       {
-         get { return _isGameStarted; }
+         get { return isGameStarted; }
          set
          {
-            SetProperty(ref _isGameStarted, value);
+            SetProperty(ref isGameStarted, value);
             IsGameEnded = !value;
          }
       }
 
-      public bool IsGameEnded { get => _isGameEnded; set => SetProperty(ref _isGameEnded, value);}
+      private bool isGameEnded;
+      public bool IsGameEnded { get => isGameEnded; set => SetProperty(ref isGameEnded, value); }
 
       public DelegateCommand<PictureSection> MoveSectionCommand { get; private set; }
       public DelegateCommand StartGameCommand { get; private set; }
       public DelegateCommand SolveGameCommand { get; private set; }
       public DelegateCommand ShowHintsCommand { get; private set; }
 
+      private ObservableCollection<PictureSection> _pictureSections;
+
       public ObservableCollection<PictureSection> PictureSections
       {
          get { return _pictureSections; }
          set { SetProperty(ref _pictureSections, value); }
       }
+
+      #endregion Properties
 
       public MainViewModel()
       {
@@ -60,7 +70,7 @@ namespace WpfClient
          MovesCount = 0;
          IsGameStarted = false;
          PictureSections = new ObservableCollection<PictureSection>();
-//         StartGameCommand = new DelegateCommand(StartGameExecute, CanStartGame);
+         //         StartGameCommand = new DelegateCommand(StartGameExecute, CanStartGame);
          StartGameCommand = new DelegateCommand(StartGameExecute).ObservesCanExecute(() => IsGameEnded);
          MoveSectionCommand = new DelegateCommand<PictureSection>(MoveSectionExecute, CanMoveSection);
          ShowHintsCommand = new DelegateCommand(ShowHintsExecute).ObservesCanExecute(() => IsGameStarted);
@@ -126,7 +136,6 @@ namespace WpfClient
          _timer = new Timer(UpdatePlayTime, null, 0, 1000);
       }
 
-
       private void MoveSectionExecute(PictureSection ps)
       {
          MovesCount++;
@@ -146,11 +155,11 @@ namespace WpfClient
          PlayTimeString = _playTime.ToString(@"hh\:mm\:ss");
       }
 
-      private void SolveGameExecute()
+      private void ShowHintsExecute()
       {
       }
 
-      private void ShowHintsExecute()
+      private void SolveGameExecute()
       {
       }
 
