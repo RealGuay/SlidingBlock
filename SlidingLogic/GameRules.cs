@@ -11,6 +11,7 @@ namespace SlidingLogic
       private int emptyBlockIndex;
       private BlockFrame frame;
       private bool _isShuffling;
+      private bool _isInitialized;
 
       public event EventHandler<MoveBlockEventArgs> BlockMoved;
 
@@ -27,21 +28,26 @@ namespace SlidingLogic
       {
          this.xDim = xDim;
          this.yDim = yDim;
+         _isInitialized = false;
+         emptyBlockIndex = -1;
          MoveableBlockIndexes = new List<int>();
+         CreateFrame();
+      }
+      private void CreateFrame()
+      {
+         frame = new BlockFrame(xDim, yDim);
+         NbCells = frame.NbCells;
       }
 
       public void InitializeFrame()
       {
-         CreateFrame();
-         RemoveLastBlock();
-         FindMoveableBlockIndexes();
-         ShuffleBlocks();
-      }
-
-      public void CreateFrame()
-      {
-         frame = new BlockFrame(xDim, yDim);
-         NbCells = frame.NbCells;
+         if (!_isInitialized)
+         {
+            RemoveLastBlock();
+            FindMoveableBlockIndexes();
+            ShuffleBlocks();
+            _isInitialized = true;
+         }
       }
 
       public void RemoveLastBlock()
@@ -55,6 +61,12 @@ namespace SlidingLogic
       public void FindMoveableBlockIndexes()
       {
          MoveableBlockIndexes.Clear();
+
+         if (emptyBlockIndex == -1)
+         {
+            // no block removed; no move possible
+            return;
+         }
 
          // block above
          int aboveIndex = emptyBlockIndex - xDim;
@@ -139,6 +151,9 @@ namespace SlidingLogic
       private void ReplaceRemovedBlock()
       {
          frame.ReplaceRemovedBlock();
+         emptyBlockIndex = -1;
+         FindMoveableBlockIndexes();
+         _isInitialized = false;
          RemovedBlockReplaced?.Invoke(this, EventArgs.Empty);
       }
 

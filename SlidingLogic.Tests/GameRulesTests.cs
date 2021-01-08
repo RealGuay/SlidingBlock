@@ -16,18 +16,14 @@ namespace SlidingLogic.Tests
       }
 
       [Test]
-      public void ShouldCreateFrameOnInitialize()
+      public void ShouldGenerateCellsOnConstructor()
       {
-         game.CreateFrame();
-
          Assert.AreEqual(20, game.NbCells);
       }
 
       [Test]
       public void ShouldRemoveLastBlock()
       {
-         game.CreateFrame();
-
          game.RemoveLastBlock();
 
          Assert.AreEqual(-1, game.GetBlockId(19));
@@ -202,7 +198,7 @@ namespace SlidingLogic.Tests
       }
 
       [Test]
-      public void ShouldInvokeBlockMovedEventOnMove()
+      public void ShouldInvokeBlockMovedEventOnMoveBlock()
       {
          int fromIndex = -1;
          int toIndex = -1;
@@ -215,6 +211,67 @@ namespace SlidingLogic.Tests
          Assert.IsTrue(wait.WaitOne(TimeSpan.FromSeconds(5)));
          Assert.AreEqual(18, fromIndex);
          Assert.AreEqual(19, toIndex);
+      }
+
+      [Test]
+      public void ShouldInvokeBlockRemovedEventOnRemoveBlock()
+      {
+         int lastIndex = 0;
+         var wait = new AutoResetEvent(false);
+         game.BlockRemoved += (s, i) => { wait.Set(); lastIndex = i; };
+
+         game.RemoveLastBlock();
+
+         Assert.IsTrue(wait.WaitOne(TimeSpan.FromSeconds(5)));
+         Assert.AreEqual(19, lastIndex);
+      }
+
+      [Test]
+      public void ShouldInvokeRemovedBlockReplacedEventWhenPuzzleSolved()
+      {
+         var wait = new AutoResetEvent(false);
+         game.RemovedBlockReplaced += (s, i) => { wait.Set(); };
+         InitFrameWithoutShuffling();
+
+         game.MoveBlock(18);
+         game.MoveBlock(19);
+
+         Assert.IsTrue(wait.WaitOne(TimeSpan.FromSeconds(5)));
+      }
+
+      [Test]
+      public void ShouldReplaceRemovedBlockWhenPuzzleSolved()
+      {
+         InitFrameWithoutShuffling();
+
+         game.MoveBlock(18);
+         game.MoveBlock(19);
+
+         Assert.AreEqual(19, game.GetBlockId(19));
+      }
+
+      [Test]
+      public void ShouldEmptyMoveableIndexesWhenPuzzleSolved()
+      {
+         InitFrameWithoutShuffling();
+
+         game.MoveBlock(18);
+         game.MoveBlock(19);
+
+         Assert.IsEmpty(game.MoveableBlockIndexes);
+      }
+
+      [Test]
+      public void ShouldInvokeEndOfGameDetectedEventWhenPuzzleSolved()
+      {
+         var wait = new AutoResetEvent(false);
+         game.EndOfGameDetected += (s, i) => { wait.Set(); };
+         InitFrameWithoutShuffling();
+
+         game.MoveBlock(18);
+         game.MoveBlock(19);
+
+         Assert.IsTrue(wait.WaitOne(TimeSpan.FromSeconds(5)));
       }
 
       [Test]
@@ -259,7 +316,7 @@ namespace SlidingLogic.Tests
          InitFrameWithoutShuffling();
 
          bool isShuffled = game.IsShuffled();
-         Assert.AreEqual(false, isShuffled);  // this is NOT true because it random  !!! (???)
+         Assert.AreEqual(false, isShuffled);
       }
 
       public void ShouldNotBeShuffledAfterReversedMoves()
@@ -313,7 +370,6 @@ namespace SlidingLogic.Tests
 
       private void InitFrameWithoutShuffling()
       {
-         game.CreateFrame();
          game.RemoveLastBlock();
          game.FindMoveableBlockIndexes();
       }

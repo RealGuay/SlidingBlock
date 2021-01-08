@@ -3,6 +3,7 @@ using Prism.Mvvm;
 using SlidingLogic;
 using System;
 using System.Collections.ObjectModel;
+using System.Threading;
 using System.Windows;
 
 namespace WpfClient
@@ -11,12 +12,38 @@ namespace WpfClient
    {
       private int _xDimension;
       private int _yDimension;
+      private int _moveCount;
+      private bool _isGameStarted;
+      private bool _isGameEnded;
+      private DateTime _startTime;
+      private TimeSpan _playTime;
+      private string _playTimeString;
+      private Timer _timer;
       private GameRules _game;
       private ObservableCollection<PictureSection> _pictureSections;
       private PictureSection _removedPictureSection;
       private PictureSection _emptyPictureSection;
+      public int XDimension { get => _xDimension; set => SetProperty(ref _xDimension, value); }
+      public int YDimension { get => _yDimension; set => SetProperty(ref _yDimension, value); }
+      public int MovesCount { get => _moveCount; set => SetProperty(ref _moveCount, value); }
+      public string PlayTimeString { get => _playTimeString; set => SetProperty(ref _playTimeString, value); }
+
+      public bool IsGameStarted
+      {
+         get { return _isGameStarted; }
+         set
+         {
+            SetProperty(ref _isGameStarted, value);
+            IsGameEnded = !value;
+         }
+      }
+
+      public bool IsGameEnded { get => _isGameEnded; set => SetProperty(ref _isGameEnded, value);}
 
       public DelegateCommand<PictureSection> MoveSectionCommand { get; private set; }
+      public DelegateCommand StartGameCommand { get; private set; }
+      public DelegateCommand SolveGameCommand { get; private set; }
+      public DelegateCommand ShowHintsCommand { get; private set; }
 
       public ObservableCollection<PictureSection> PictureSections
       {
@@ -24,27 +51,20 @@ namespace WpfClient
          set { SetProperty(ref _pictureSections, value); }
       }
 
-      public int XDimension { get => _xDimension; set => SetProperty(ref _xDimension, value); }
-      public int YDimension { get => _yDimension; set => SetProperty(ref _yDimension, value); }
-
       public MainViewModel()
       {
          XDimension = 3;
          YDimension = 4;
+         _playTime = new TimeSpan(0);
+         PlayTimeString = _playTime.ToString(@"hh\:mm\:ss");
+         MovesCount = 0;
+         IsGameStarted = false;
          PictureSections = new ObservableCollection<PictureSection>();
+//         StartGameCommand = new DelegateCommand(StartGameExecute, CanStartGame);
+         StartGameCommand = new DelegateCommand(StartGameExecute).ObservesCanExecute(() => IsGameEnded);
          MoveSectionCommand = new DelegateCommand<PictureSection>(MoveSectionExecute, CanMoveSection);
-      }
-
-      private void MoveSectionExecute(PictureSection ps)
-      {
-         int index = GetIndexOfSection(ps);
-         _game.MoveBlock(index);
-      }
-
-      private bool CanMoveSection(PictureSection ps)
-      {
-         int index = GetIndexOfSection(ps);
-         return _game.MoveableBlockIndexes.Contains(index);
+         ShowHintsCommand = new DelegateCommand(ShowHintsExecute).ObservesCanExecute(() => IsGameStarted);
+         SolveGameCommand = new DelegateCommand(SolveGameExecute).ObservesCanExecute(() => IsGameStarted);
       }
 
       internal void Initialize()
@@ -55,7 +75,8 @@ namespace WpfClient
 
       private void CreateSections()
       {
-         ImageSplitter splitter = new ImageSplitter(XDimension, YDimension, "pack://application:,,,/Images/Cloe1.jpg");
+         //         ImageSplitter splitter = new ImageSplitter(XDimension, YDimension, "pack://application:,,,/Images/Cloe1.jpg");
+         ImageSplitter splitter = new ImageSplitter(XDimension, YDimension, @"D:\RG\Pictures\Saved Pictures\2021\DroneLauzon\Photo 2021-01-01 12 55 57.jpg");
          splitter.CreateSections(PictureSections);
          _emptyPictureSection = new PictureSection() { Id = -1, ImageMember = null };
       }
@@ -67,7 +88,6 @@ namespace WpfClient
          _game.BlockRemoved += Game_BlockRemoved;
          _game.RemovedBlockReplaced += Game_RemovedBlockReplaced;
          _game.EndOfGameDetected += Game_EndOfGameDetected;
-         _game.InitializeFrame();
       }
 
       private void Game_BlockMoved(object sender, MoveBlockEventArgs e)
@@ -91,7 +111,47 @@ namespace WpfClient
 
       private void Game_EndOfGameDetected(object sender, EventArgs e)
       {
+         _timer.Dispose();
+         _timer = null;
+         IsGameStarted = false;
          MessageBox.Show("End of game !!!", "WOW!!!");
+      }
+
+      private void StartGameExecute()
+      {
+         _game.InitializeFrame();
+         MovesCount = 0;
+         IsGameStarted = true;
+         _startTime = DateTime.Now;
+         _timer = new Timer(UpdatePlayTime, null, 0, 1000);
+      }
+
+
+      private void MoveSectionExecute(PictureSection ps)
+      {
+         MovesCount++;
+         int index = GetIndexOfSection(ps);
+         _game.MoveBlock(index);
+      }
+
+      private bool CanMoveSection(PictureSection ps)
+      {
+         int index = GetIndexOfSection(ps);
+         return _game.MoveableBlockIndexes.Contains(index);
+      }
+
+      private void UpdatePlayTime(object state)
+      {
+         _playTime = DateTime.Now - _startTime;
+         PlayTimeString = _playTime.ToString(@"hh\:mm\:ss");
+      }
+
+      private void SolveGameExecute()
+      {
+      }
+
+      private void ShowHintsExecute()
+      {
       }
 
       private int GetIndexOfSection(PictureSection ps)
