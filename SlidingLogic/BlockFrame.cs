@@ -5,16 +5,16 @@ namespace SlidingLogic
 {
    internal class BlockFrame
    {
-      private readonly List<Block> cells;
-      private readonly Block emptyCellBlock = new Block(-1);
-      private Block removedBlock;
-      private int removedBlockIndex;
+      private readonly List<Block> _cells;
+      private readonly Block _emptyCellBlock = new Block(-1);
+      private Block _removedBlock;
+      private int _removedBlockIndex;
       public int NbCells { get; set; }
 
       public BlockFrame(int xDim, int yDim)
       {
          ValidateFrameDimensions(xDim, yDim);
-         cells = new List<Block>();
+         _cells = new List<Block>();
          InitializeFrame(xDim, yDim);
       }
 
@@ -34,34 +34,34 @@ namespace SlidingLogic
       {
          for (int i = 0; i < xDim * yDim; i++)
          {
-            cells.Add(new Block(i));
+            _cells.Add(new Block(i));
          }
-         NbCells = cells.Count;
+         NbCells = _cells.Count;
       }
 
       public void RemoveBlock(int index)
       {
-         removedBlock = cells[index];
-         cells[index] = emptyCellBlock;
-         removedBlockIndex = index;
+         _removedBlock = _cells[index];
+         _cells[index] = _emptyCellBlock;
+         _removedBlockIndex = index;
       }
 
       public void ReplaceRemovedBlock()
       {
-         cells[removedBlockIndex] = removedBlock;
+         _cells[_removedBlockIndex] = _removedBlock;
       }
 
       public void SwapBlocks(int index1, int index2)
       {
-         Block tempBlock = cells[index2];
+         Block tempBlock = _cells[index2];
 
-         cells[index2] = cells[index1];
-         cells[index1] = tempBlock;
+         _cells[index2] = _cells[index1];
+         _cells[index1] = tempBlock;
       }
 
       internal int GetBlockId(int index)
       {
-         return cells[index].Id;
+         return _cells[index].Id;
       }
    }
 }
