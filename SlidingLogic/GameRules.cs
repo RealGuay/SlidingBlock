@@ -1,17 +1,33 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
+
+[assembly: InternalsVisibleTo("SlidingLogic.Tests")]
 
 namespace SlidingLogic
 {
    public class GameRules
    {
+      #region Fields
+
       private readonly int xDim;
       private readonly int yDim;
-      private int emptyBlockIndex;
-      private BlockFrame frame;
+      private BlockFrame _frame;
+      private int? _emptyBlockIndex;
       private bool _isShuffling;
       private bool _isInitialized;
+
+      #endregion Fields
+
+      #region Properties
+
+      public List<int> MoveableBlockIndexes { get; }
+      public int NbCells { get; private set; }
+
+      #endregion Properties
+
+      #region Events
 
       public event EventHandler<MoveBlockEventArgs> BlockMoved;
 
@@ -21,76 +37,79 @@ namespace SlidingLogic
 
       public event EventHandler EndOfGameDetected;
 
-      public List<int> MoveableBlockIndexes { get; }
-      public int NbCells { get; private set; }
+      #endregion Events
 
       public GameRules(int xDim, int yDim)
       {
          this.xDim = xDim;
          this.yDim = yDim;
          _isInitialized = false;
-         emptyBlockIndex = -1;
          MoveableBlockIndexes = new List<int>();
          CreateFrame();
       }
+
       private void CreateFrame()
       {
-         frame = new BlockFrame(xDim, yDim);
-         NbCells = frame.NbCells;
+         _frame = new BlockFrame(xDim, yDim);
+         NbCells = _frame.NbCells;
       }
 
-      public void InitializeFrame()
+      public void InitializeFrame(bool doShuffle = true)
       {
          if (!_isInitialized)
          {
             RemoveLastBlock();
             FindMoveableBlockIndexes();
-            ShuffleBlocks();
+            if (doShuffle)
+            {
+               ShuffleBlocks();
+            }
             _isInitialized = true;
          }
       }
 
-      public void RemoveLastBlock()
+      internal void RemoveLastBlock()
       {
          int lastIndex = NbCells - 1;
-         frame.RemoveBlock(lastIndex);
-         emptyBlockIndex = lastIndex;
+         _frame.RemoveBlock(lastIndex);
+         _emptyBlockIndex = lastIndex;
          BlockRemoved?.Invoke(this, lastIndex);
       }
 
-      public void FindMoveableBlockIndexes()
+      internal void FindMoveableBlockIndexes()
       {
          MoveableBlockIndexes.Clear();
 
-         if (emptyBlockIndex == -1)
+         if (_emptyBlockIndex is null)
          {
-            // no block removed; no move possible
+            // no empty block removed then, no move possible
             return;
          }
 
+         int emptyIndex = _emptyBlockIndex.Value;
          // block above
-         int aboveIndex = emptyBlockIndex - xDim;
+         int aboveIndex = emptyIndex - xDim;
          if (aboveIndex >= 0)
          {
             MoveableBlockIndexes.Add(aboveIndex);
          }
 
          // block below
-         int belowIndex = emptyBlockIndex + xDim;
-         if (belowIndex < frame.NbCells)
+         int belowIndex = emptyIndex + xDim;
+         if (belowIndex < _frame.NbCells)
          {
             MoveableBlockIndexes.Add(belowIndex);
          }
 
          // block on left
-         int leftIndex = emptyBlockIndex - 1;
-         if (emptyBlockIndex % xDim > 0)
+         int leftIndex = emptyIndex - 1;
+         if (_emptyBlockIndex % xDim > 0)
          {
             MoveableBlockIndexes.Add(leftIndex);
          }
 
          // block on right
-         int rightIndex = emptyBlockIndex + 1;
+         int rightIndex = emptyIndex + 1;
          if (rightIndex % xDim > 0)
          {
             MoveableBlockIndexes.Add(rightIndex);
@@ -99,65 +118,7 @@ namespace SlidingLogic
          MoveableBlockIndexes.Sort();
       }
 
-      public int GetBlockId(int index)
-      {
-         return frame.GetBlockId(index);
-      }
-
-      public bool IsShuffled()
-      {
-         for (int i = 0; i < NbCells; i++)
-         {
-            if (i < NbCells - 1)
-            {
-               if (GetBlockId(i) != i)
-               {
-                  return true;
-               }
-            }
-            else // last cell
-            {
-               if (GetBlockId(i) != -1)
-               {
-                  return true;
-               }
-            }
-         }
-         return false;
-      }
-
-      public void MoveBlock(int fromIndex)
-      {
-         ValidateMoveableBlock(fromIndex);
-
-         int toIndex = emptyBlockIndex;
-         frame.SwapBlocks(fromIndex, toIndex);
-         emptyBlockIndex = fromIndex;
-         FindMoveableBlockIndexes();
-         BlockMoved?.Invoke(this, new MoveBlockEventArgs() { FromIndex = fromIndex, ToIndex = toIndex });
-
-         DetectEndOfGame();
-      }
-
-      private void DetectEndOfGame()
-      {
-         if (!_isShuffling && !IsShuffled())
-         {
-            ReplaceRemovedBlock();
-            EndOfGameDetected?.Invoke(this, EventArgs.Empty);
-         }
-      }
-
-      private void ReplaceRemovedBlock()
-      {
-         frame.ReplaceRemovedBlock();
-         emptyBlockIndex = -1;
-         FindMoveableBlockIndexes();
-         _isInitialized = false;
-         RemovedBlockReplaced?.Invoke(this, EventArgs.Empty);
-      }
-
-      public void ShuffleBlocks()
+      internal void ShuffleBlocks()
       {
          _isShuffling = true;
          DoShuffleRandomly();
@@ -185,12 +146,74 @@ namespace SlidingLogic
          }
       }
 
+      internal bool IsShuffled()
+      {
+         for (int i = 0; i < NbCells; i++)
+         {
+            if (i < NbCells - 1)
+            {
+               if (GetBlockId(i) != i)
+               {
+                  return true;
+               }
+            }
+            else // last cell
+            {
+               if (GetBlockId(i) != -1)
+               {
+                  return true;
+               }
+            }
+         }
+         return false;
+      }
+
+      public void MoveBlock(int fromIndex)
+      {
+         ValidateMoveableBlock(fromIndex);
+
+         int toIndex = _emptyBlockIndex.Value;
+         _frame.SwapBlocks(fromIndex, toIndex);
+         _emptyBlockIndex = fromIndex;
+         FindMoveableBlockIndexes();
+         BlockMoved?.Invoke(this, new MoveBlockEventArgs() { FromIndex = fromIndex, ToIndex = toIndex });
+
+         DetectEndOfGame();
+      }
+
       private void ValidateMoveableBlock(int fromIndex)
       {
+         if (_emptyBlockIndex is null)
+         {
+            throw new InvalidOperationException("There is no empty block, therefore no moves are allowed.");
+         }
          if (!MoveableBlockIndexes.Contains(fromIndex))
          {
             throw new ArgumentException($"Cannot move block in cell index: {fromIndex}");
          }
+      }
+
+      private void DetectEndOfGame()
+      {
+         if (!_isShuffling && !IsShuffled())
+         {
+            ReplaceRemovedBlock();
+            EndOfGameDetected?.Invoke(this, EventArgs.Empty);
+         }
+      }
+
+      private void ReplaceRemovedBlock()
+      {
+         _frame.ReplaceRemovedBlock();
+         _emptyBlockIndex = null;
+         FindMoveableBlockIndexes();
+         _isInitialized = false;
+         RemovedBlockReplaced?.Invoke(this, EventArgs.Empty);
+      }
+
+      internal int GetBlockId(int index)
+      {
+         return _frame.GetBlockId(index);
       }
    }
 }
