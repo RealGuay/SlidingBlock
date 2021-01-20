@@ -2,20 +2,38 @@
 using Prism.Mvvm;
 using SlidingLogic;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Windows;
+using System.Windows.Threading;
+
+[assembly: InternalsVisibleTo("WpfClient.Tests")]
 
 namespace WpfClient
 {
    public class MainViewModel : BindableBase
    {
+      enum GameState
+      {
+         ReadyToStart,
+         Shuffling,
+         Playing,
+         Solving
+      }
+
+      private Dispatcher _uiDispatcher;
       private GameRules _game;
       private DateTime _startTime;
       private TimeSpan _playTime;
       private Timer _timer;
       private PictureSection _removedPictureSection;
       private PictureSection _emptyPictureSection;
+      private Stack<int> _undoMoves;
+      private bool _inSolvingMode;
+      private IImageSplitter _imageSplitter;
+      private GameParameters _parameters;
 
       #region Properties
 
@@ -46,6 +64,10 @@ namespace WpfClient
       private bool isGameEnded;
       public bool IsGameEnded { get => isGameEnded; set => SetProperty(ref isGameEnded, value); }
 
+      private Visibility hintsDisplayed;
+
+      public Visibility HintsDisplayed { get => hintsDisplayed; set => SetProperty(ref hintsDisplayed, value); }
+
       public DelegateCommand<PictureSection> MoveSectionCommand { get; private set; }
       public DelegateCommand StartGameCommand { get; private set; }
       public DelegateCommand SolveGameCommand { get; private set; }
@@ -61,15 +83,21 @@ namespace WpfClient
 
       #endregion Properties
 
-      public MainViewModel()
+      public MainViewModel(IImageSplitter imageSplitter)
       {
-         XDimension = 3;
-         YDimension = 4;
+         _imageSplitter = imageSplitter;
+         _parameters = new GameParameters();
+         XDimension = _parameters.XDimension;
+         YDimension = _parameters.YDimension;
          _playTime = new TimeSpan(0);
          PlayTimeString = _playTime.ToString(@"hh\:mm\:ss");
          MovesCount = 0;
          IsGameStarted = false;
+         HintsDisplayed = Visibility.Collapsed;
          PictureSections = new ObservableCollection<PictureSection>();
+         _undoMoves = new Stack<int>();
+         _uiDispatcher = Dispatcher.CurrentDispatcher;
+
          //         StartGameCommand = new DelegateCommand(StartGameExecute, CanStartGame);
          StartGameCommand = new DelegateCommand(StartGameExecute).ObservesCanExecute(() => IsGameEnded);
          MoveSectionCommand = new DelegateCommand<PictureSection>(MoveSectionExecute, CanMoveSection);
@@ -85,9 +113,10 @@ namespace WpfClient
 
       private void CreateSections()
       {
-         //         ImageSplitter splitter = new ImageSplitter(XDimension, YDimension, "pack://application:,,,/Images/Cloe1.jpg");
-         ImageSplitter splitter = new ImageSplitter(XDimension, YDimension, @"D:\RG\Pictures\Saved Pictures\2021\DroneLauzon\Photo 2021-01-01 12 55 57.jpg");
-         splitter.CreateSections(PictureSections);
+//         ImageSplitter splitter = new ImageSplitter();
+//       ImageSplitter splitter = new ImageSplitter(XDimension, YDimension, "pack://application:,,,/Images/Cloe1.jpg");
+//       ImageSplitter splitter = new ImageSplitter(XDimension, YDimension, @"D:\RG\Pictures\Saved Pictures\2021\DroneLauzon\Photo 2021-01-01 12 55 57.jpg");
+         _imageSplitter.CreateSections(_parameters, PictureSections);
          _emptyPictureSection = new PictureSection() { Id = -1, ImageMember = null };
       }
 
@@ -105,6 +134,7 @@ namespace WpfClient
          var tempSection = PictureSections[e.ToIndex];
          PictureSections[e.ToIndex] = PictureSections[e.FromIndex];
          PictureSections[e.FromIndex] = tempSection;
+         if (!_inSolvingMode) _undoMoves.Push(e.ToIndex);
          MoveSectionCommand.RaiseCanExecuteChanged();
       }
 
@@ -116,15 +146,30 @@ namespace WpfClient
 
       private void Game_RemovedBlockReplaced(object sender, EventArgs e)
       {
+         StopSolving();
          PictureSections[^1] = _removedPictureSection; // ^1 : one "from the end"
+      }
+
+      private void StopSolving()
+      {
+         if (_inSolvingMode)
+         {
+            _undoMoves.Clear();
+            _inSolvingMode = false;
+         }
       }
 
       private void Game_EndOfGameDetected(object sender, EventArgs e)
       {
-         _timer.Dispose();
-         _timer = null;
+         ReleaseTimer();
          IsGameStarted = false;
          MessageBox.Show("End of game !!!", "WOW!!!");
+      }
+
+      private void ReleaseTimer()
+      {
+         _timer.Dispose();
+         _timer = null;
       }
 
       private void StartGameExecute()
@@ -134,6 +179,7 @@ namespace WpfClient
          IsGameStarted = true;
          _startTime = DateTime.Now;
          _timer = new Timer(UpdatePlayTime, null, 0, 1000);
+         _inSolvingMode = false;
       }
 
       private void MoveSectionExecute(PictureSection ps)
@@ -157,10 +203,22 @@ namespace WpfClient
 
       private void ShowHintsExecute()
       {
+         HintsDisplayed = HintsDisplayed == Visibility.Collapsed ? Visibility.Visible : Visibility.Collapsed;
       }
 
       private void SolveGameExecute()
       {
+         ReleaseTimer();
+         _inSolvingMode = true;
+         _timer = new Timer(DoSolveOneMove, null, 0, 500);
+      }
+
+      private void DoSolveOneMove(object state)
+      {
+         if (_inSolvingMode && _undoMoves.TryPop(out int index))
+         {
+            _uiDispatcher.Invoke(() => _game.MoveBlock(index));
+         }
       }
 
       private int GetIndexOfSection(PictureSection ps)

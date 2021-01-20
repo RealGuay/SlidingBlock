@@ -12,7 +12,10 @@ namespace WpfClient
       public MainWindow()
       {
          InitializeComponent();
-         mainViewModel = new MainViewModel();
+         //mainViewModel = new MainViewModel();
+         var displayInfo = new DisplayMonitorInfo();
+         var imageSplitter = new ImageSplitter(displayInfo);
+         mainViewModel = new MainViewModel(imageSplitter);
          DataContext = mainViewModel;
          this.Loaded += MainWindow_Loaded;
       }

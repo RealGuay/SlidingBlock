@@ -1,19 +1,21 @@
-﻿using System;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 
 namespace WpfClient
 {
-   public class ImageSplitter
+   public class ImageSplitter : IImageSplitter
    {
       private const int _FrameReservedPixel = 120;
-      private readonly int _xDimension;
-      private readonly int _yDimension;
-      private readonly string _imageLocation;
-      private readonly double _screenWidth;
-      private readonly double _screenHeight;
+
+      private GameParameters _parameters;
+
+      public int MonitorWidthPixelSize { get; private set; }
+      public int MonitorHeightPixelSize { get; private set; }
+
+      public int SectionWidth { get; private set; }
+      public int SectionHeight { get; private set; }
 
       private enum ResizeOrientation
       {
@@ -21,49 +23,47 @@ namespace WpfClient
          Vertical
       }
 
-      public ImageSplitter(int x, int y, string imageLocation)
+      public ImageSplitter(IDisplayMonitorInfo displayInfo)
       {
-         _xDimension = x;
-         _yDimension = y;
-         _imageLocation = imageLocation;
-
-         _screenWidth = System.Windows.SystemParameters.WorkArea.Width;
-         _screenHeight = System.Windows.SystemParameters.WorkArea.Height;
+         displayInfo.GetFirstMonitorPixelSizes(out int monitorWidth, out int monitorHeight);
+         MonitorWidthPixelSize = monitorWidth;
+         MonitorHeightPixelSize = monitorHeight;
       }
 
-      public void CreateSections(ObservableCollection<PictureSection> pictureSections)
+      public void CreateSections(GameParameters parameters, ObservableCollection<PictureSection> pictureSections)
       {
-         Uri imageUri = new Uri(_imageLocation);
-         CalculateMaxPixelSizes(imageUri, out int maxDecodePixelHeight, out int maxDecodePixelWidth);
+         _parameters = parameters;
+         CalculateMaxPixelSizes(parameters.Image, out int maxDecodePixelHeight, out int maxDecodePixelWidth);
 
          BitmapImage bi = new BitmapImage();
-         ResizeToFitOnScreen(bi, imageUri, maxDecodePixelHeight, maxDecodePixelWidth);
+         ResizeToFitOnScreen(bi, parameters.Image, maxDecodePixelHeight, maxDecodePixelWidth);
          SplitInSections(bi, pictureSections);
       }
 
-      private void CalculateMaxPixelSizes(Uri imageUri, out int maxDecodePixelHeight, out int maxDecodePixelWidth)
+      private void CalculateMaxPixelSizes(BitmapImage image, out int maxDecodePixelHeight, out int maxDecodePixelWidth)
       {
-         BitmapImage biTmp = new BitmapImage(imageUri);
+         BitmapImage biTmp = image.Clone();
 
          GetPixelSize(biTmp, out int pixelHeight, out int pixelWidth);
          GetDisplaySize(biTmp, out double displayHeight, out double displayWidth);
+
          // factors
          double xDisplayToPixelFactor = pixelWidth / displayWidth;
          double yDisplayToPixelFactor = pixelHeight / displayHeight;
 
          // resize orientation
-         ResizeOrientation orientation = (_screenWidth / displayWidth) > (_screenHeight / displayHeight)
+         ResizeOrientation orientation = (MonitorWidthPixelSize / displayWidth) > (MonitorHeightPixelSize / displayHeight)
             ? ResizeOrientation.Vertical
             : ResizeOrientation.Horizontal;
 
          if (orientation == ResizeOrientation.Horizontal)
          {
             maxDecodePixelHeight = 0;
-            maxDecodePixelWidth = (int)(_screenWidth * xDisplayToPixelFactor) - _FrameReservedPixel;
+            maxDecodePixelWidth = (int)(MonitorWidthPixelSize * xDisplayToPixelFactor) - _FrameReservedPixel;
          }
          else
          {
-            maxDecodePixelHeight = (int)(_screenHeight * yDisplayToPixelFactor) - _FrameReservedPixel;
+            maxDecodePixelHeight = (int)(MonitorHeightPixelSize * yDisplayToPixelFactor) - _FrameReservedPixel;
             maxDecodePixelWidth = 0;
          }
       }
@@ -80,10 +80,11 @@ namespace WpfClient
          pixelWidth = bi.PixelWidth;
       }
 
-      private void ResizeToFitOnScreen(BitmapImage bi, Uri imageUri, int requestedPixelHeight, int requestedPixelWidth)
+      private void ResizeToFitOnScreen(BitmapImage bi, BitmapImage paramImage, int requestedPixelHeight, int requestedPixelWidth)
       {
          bi.BeginInit();
-         bi.UriSource = imageUri;
+         bi.UriSource = paramImage.UriSource;
+         bi.StreamSource = paramImage.StreamSource;
          bi.DecodePixelHeight = requestedPixelHeight;
          bi.DecodePixelWidth = requestedPixelWidth;
          bi.EndInit();
@@ -91,34 +92,34 @@ namespace WpfClient
 
       private void SplitInSections(BitmapImage bi, ObservableCollection<PictureSection> pictureSections)
       {
-         CalculateSectionSizes(bi, out int sectionWidth, out int sectionHeight);
-         GenerateSections(bi, pictureSections, sectionWidth, sectionHeight);
+         CalculateSectionSizes(bi);
+         GenerateSections(bi, pictureSections);
       }
 
-      private void CalculateSectionSizes(BitmapImage bi, out int sectionWidth, out int sectionHeight)
+      private void CalculateSectionSizes(BitmapImage bi)
       {
-         sectionWidth = bi.PixelWidth / _xDimension;
-         sectionHeight = bi.PixelHeight / _yDimension;
+         SectionWidth = bi.PixelWidth / _parameters.XDimension;
+         SectionHeight = bi.PixelHeight / _parameters.YDimension;
       }
 
-      private void GenerateSections(BitmapImage bi, ObservableCollection<PictureSection> pictureSections, int sectionWidth, int sectionHeight)
+      private void GenerateSections(BitmapImage bi, ObservableCollection<PictureSection> pictureSections)
       {
          int index;
          Int32Rect rect;
          CroppedBitmap cb;
          Image imageSection;
 
-         for (int j = 0; j < _yDimension; j++)
+         for (int j = 0; j < _parameters.YDimension; j++)
          {
-            for (int i = 0; i < _xDimension; i++)
+            for (int i = 0; i < _parameters.XDimension; i++)
             {
-               index = j * _xDimension + i;
-               rect = new Int32Rect(i * sectionWidth,
-                                    j * sectionHeight,
-                                    sectionWidth,
-                                    sectionHeight);
+               index = j * _parameters.XDimension + i;
+               rect = new Int32Rect(i * SectionWidth,
+                                    j * SectionHeight,
+                                    SectionWidth,
+                                    SectionHeight);
                cb = new CroppedBitmap(bi, rect);
-               imageSection = new Image() { Source = cb };
+               imageSection = new Image { Source = cb };
                pictureSections.Add(new PictureSection() { Id = index, ImageMember = imageSection });
             }
          }
